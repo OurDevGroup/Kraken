@@ -20,12 +20,28 @@ When prompted for the Demandware server, only enter the domain (ie staging.web.m
 
 If you plan to deploy to a PIG instance, you probably need to acquire the SSL two factor authentication certificate and password from Demandware for your instance.  Place the key, srl, etc files in the /certs/ directory and ensure that you use the correct domain (ie cert.staging.web.XXXXX.demandware.net) and follow all of the prompts.
 
-The JS and CSS minification currently require Ruby and use cssminify and uglifyjs.  YUI support is commented out for now, but should work fine if you have Java installed.  Ruby, Gem and the require may require you to have sudo access to execute, if so you probably want to manually install the Gem packages by executing:
+The JS and CSS minification currently require Ruby and use cssminify and uglifyjs.  YUI support is commented out for now, but should work fine if you have Java installed.  
 
-sudo gem install cssminify
+Ruby, Gem and the require may require you to have sudo access to execute, if so you probably want to manually install the Gem packages by executing:
 
-and 
-
-sudo gem install uglifier
+1) sudo gem install cssminify
+2) sudo gem install uglifier
 
 No guarantees that this will work, so 'check it, before you wreck it'.
+
+
+
+
+Options
+--------------------
+deploy - this is the big kahuna and basically does everything you need to deploy your code.
+
+build - pulls latest for source control provider and builds a zip file
+
+update - updates working folder with latest from SCP
+
+cert - builds a client certificate
+
+upload - uploads build.zip to remote server
+
+
