@@ -1,1 +1,31 @@
-kill chris
+ ,---.
+( @ @ )
+ ).-.(
+'/|||\`
+  '|`
+
+Kraken - Demandware build script for Bash terminals.
+
+To use this build script:
+1) clone repo
+2) run 'chmod +x kraken.sh'
+3) run './kraken.sh deploy'
+4) follow the prompts
+
+The current implementation currently only supports SVN and requires that all of your cartridges be in the same root folder in the repository. (ie /trunk/sitegenesis, /trunk/sitegenesis_richUI, etc).
+
+When prompted for the SVN repo, input the full URL to the specific branch you are trying to deploy (ie http://myserver/svn.wom/source/trunk).
+
+When prompted for the Demandware server, only enter the domain (ie staging.web.mycompany.demandware.net).
+
+If you plan to deploy to a PIG instance, you probably need to acquire the SSL two factor authentication certificate and password from Demandware for your instance.  Place the key, srl, etc files in the /certs/ directory and ensure that you use the correct domain (ie cert.staging.web.XXXXX.demandware.net) and follow all of the prompts.
+
+The JS and CSS minification currently require Ruby and use cssminify and uglifyjs.  YUI support is commented out for now, but should work fine if you have Java installed.  Ruby, Gem and the require may require you to have sudo access to execute, if so you probably want to manually install the Gem packages by executing:
+
+sudo gem install cssminify
+
+and 
+
+sudo gem install uglifier
+
+No guarantees that this will work, so 'check it, before you wreck it'.
