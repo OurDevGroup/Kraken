@@ -101,6 +101,9 @@ case "$1" in
 			echo
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
+		test)
+
+		;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"
             exit 1

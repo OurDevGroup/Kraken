@@ -125,6 +125,28 @@ make_clientcert() {
 	write_config
 }
 
+write_conf_enc() {
+return
+}
+
+write_conf() {
+	local file="${deploydir}/conf/$1"
+	local setting="$2"
+	local value="$3"
+		
+	if [ ! -f $file ]; then
+		touch $file
+	fi
+	
+	local confout=""
+	while IFS== read pp vv;do
+		echo "test $pp "			
+	done < $file
+	echo confout > $file
+	
+	return
+}
+
 kraken() {
 	printf "${bldgrn} ,---.\n( @ @ )\n )${bldred}.-.${bldgrn}(\n'/|||\\\`\n  '|\`${txtrst}\r\n"
 }
