@@ -1,5 +1,5 @@
 requiresClientCertificate=false
-certSubj="/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com"
+certSubj=$(read_conf "deploy" "certSubj" "/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com")
 
 dw_configure() {
 	echo
@@ -21,6 +21,8 @@ dw_configure() {
         fi
     done
 	
+	write_conf "deploy" "demandwareServer" $demandwareServer
+	
 	if [ -f "${deploydir}/conf/${demandwareServer}.conf" ]; then
 		source "${deploydir}/conf/${demandwareServer}.conf"
 	else
@@ -28,6 +30,7 @@ dw_configure() {
 		echo "Generating new server configuration."
 	fi
 	
+	demandwareServer=$(write_conf "deploy" "demandwareServer" $demandwareServer)
 	local dwUserProvided=false
     while ! $dwUserProvided; do
 		if [ "${demandwareUsername}" != "" ]; then
@@ -44,12 +47,11 @@ dw_configure() {
             dwUserProvided=true
             echo
         fi
-    done
+    done	
+	write_conf "deploy" "demandwareServer" $demandwareServer
 
-	local dwPassProvided=false
-    if [ "$demandwarePassword" != "" ]; then
-	   demandwarePassword=$(echo "$demandwarePassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$demandwareUsername")
-    fi
+	demandwarePassword=$(write_conf_enc $demandwareServer "demandwarePassword" $demandwareUsername)	
+	local dwPassProvided=false	
     while ! $dwPassProvided; do
 		if [ "$demandwarePassword" != "" ]; then
 			read -p "Please enter the password for $demandwareServer [stored password]: " -s newdwpass
@@ -65,9 +67,11 @@ dw_configure() {
             dwPassProvided=true
             echo
         fi
-    done	
+    done
+	write_conf_enc $demandwareServer "demandwarePassword" $demandwarePassword $demandwareUsername	
 	
 	echo
+	requiresClientCertificate=$(read_conf $demandwareServer "requiresClientCertificate")
 	if [[ $requiresClientCertificate == true ]]; then
 		read -p "Does the server require a client certificate [Y/n]: " needsCert
 		needsCert=${needsCert:-Y}
@@ -87,6 +91,7 @@ dw_configure() {
 	else
 		requiresClientCertificate=false
 	fi
+	write_conf $demandwareServer "requiresClientCertificate" $requiresClientCertificate
 	
 	if [[ $requiresClientCertificate == true ]] && [[ $genCert == false ]]; then
 		local certProvided=false
@@ -106,10 +111,28 @@ dw_configure() {
 				certProvided=true
 				echo
 			fi			
+		done
+		
+		local certPassProvided=false
+		echo
+		while ! $certPassProvided; do
+			if [ "${clientCertificate}" != "" ]; then
+				read -p "Please enter the client certificate password: " clientCertificatePassword
+			fi
+
+			if [ "$clientCertificatePassword" == "" ]; then
+				echo "Certificate password cannot be empty!"
+			else
+				certPassProvided=true
+				echo
+			fi			
 		done		
+		
+		write_conf $demandwareServer "clientCertificate" $clientCertificate
+		write_conf_enc $demandwareServer "clientCertificatePassword" $clientCertificatePassword $clientCertificate
 	fi
 
-	dw_write_config
+	write_conf "deploy" "certSubj" $certSubj
 }
 
 dw_write_config() {
@@ -124,6 +147,9 @@ dw_upload_build() {
     
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
     
+	echo "uploading"
+	exit 1
+	
 	if [ $requiresClientCertificate == true ]; then
         echo
         echo "Uploading with certificate authentication..."

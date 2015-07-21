@@ -32,16 +32,18 @@ fi
 
 source ${deploydir}/bin/depends.sh
 source ${deploydir}/bin/color.sh
-source ${deploydir}/conf/deploy.conf
 source ${deploydir}/bin/scp.sh
 source ${deploydir}/bin/minify.sh
 source ${deploydir}/bin/func.sh
 source ${deploydir}/bin/dwdav.sh
 
-demandwareCertificatePassword=$(echo "$demandwareCertificatePassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$demandwareCertificateSRL")
-clientCertificatePassword=$(echo "$clientCertificatePassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$clientCertificate")
+demandwareCertificateSRL=$(read_conf "deploy" "demandwareCertificateSRL")
+demandwareCertificatePassword=$(read_conf_enc "deploy" "demandwareCertificatePassword" $demandwareCertificateSRL)
+clientCertificate=$(read_conf "deploy" "clientCertificate")
+clientCertificatePassword=$(read_conf_enc "deploy" "clientCertificatePassword" $clientCertificate)
 
-
+echo $demandwareCertificateSRL
+echo $demandwareCertificatePassword
 
 if [[ ! -e ${deploydir}/conf/cartridges.conf || ! -s ${deploydir}/conf/cartridges.conf ]]; then
     touch ${deploydir}/conf/cartridges.conf
@@ -101,9 +103,18 @@ case "$1" in
 			echo
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
-		test)
-
-		;;
+		test)					
+			write_conf "test" "hello" "world"
+			write_conf "test" "ryan" "rife"
+			write_conf_enc "test" "johnson" "ryan" "rife"
+			
+			x=$(read_conf "test" "hello" "default")
+			echo $x
+			
+			y=$(read_conf_enc "test" "johnson" "rife")
+			echo $y
+			exit 1
+			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"
             exit 1
