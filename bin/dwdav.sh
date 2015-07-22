@@ -76,12 +76,12 @@ dw_configure() {
 		needsCert=${needsCert:-N}
 	fi
 	
-	if [[ "$needsCert" == "Y" ]]; then
+	if [[ "$needsCert" == "Y" || "$needsCert" == "y" ]]; then
 		requiresClientCertificate=true
 		echo
 		read -p "Do you need to generate a client certificate [y/N]: " genCert
 		genCert=${genCert:-N}
-		if [ "${genCert}" == "Y" ]; then
+		if [ "${genCert}" == "Y" || "${genCert}" == "y" ]; then
 			make_clientcert
 		fi
 	else
