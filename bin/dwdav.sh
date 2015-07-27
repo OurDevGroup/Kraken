@@ -145,9 +145,6 @@ dw_upload_build() {
     
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
     
-	echo "uploading"
-	exit 1
-	
 	if [ $requiresClientCertificate == true ]; then
         echo
         echo "Uploading with certificate authentication..."
