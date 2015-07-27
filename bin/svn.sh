@@ -4,16 +4,8 @@ if [ ! -f "${deploydir}/conf/svn.conf" ]; then
 	echo "Generating new svn configuration."
 fi
 
-source ${deploydir}/conf/svn.conf
-
-svnpassword=$(echo "$svnencpassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$svnuser")
-
-scp_write_conf() {
-	local encpass=$(echo "$svnpassword" | openssl enc -aes-128-cbc -a -salt -pass "pass:$svnuser")
-	echo -e "#!/bin/bash\nsvnrepo=$svnrepo\nsvnuser=$svnuser\nsvnencpassword=$encpass" > ${deploydir}/conf/svn.conf
-}
-
 scp_get_repo() {
+	svnrepo=$(read_conf "svn" "svnrepo")
     repoProvided=false
     while ! $repoProvided; do
 		if [ "${svnrepo}" != "" ]; then
@@ -31,11 +23,13 @@ scp_get_repo() {
             echo
         fi
     done
+	write_conf "svn" "svnrepo" $svnrepo
 }
 
 scp_login() {
 	scp_get_repo
 
+	svnuser=$(read_conf "svn" "svnuser")
     local usernameProvided=false
     while ! $usernameProvided; do
 		if [ "${svnuser}" != "" ]; then
@@ -53,7 +47,9 @@ scp_login() {
             echo
         fi
     done
+	write_conf "svn" "svnuser" $svnuser
 
+	svnpassword=$(read_conf_enc "svn" "svnpassword" $svnuser)
 	local passwordProvided=false
     while ! $passwordProvided; do
 		if [ "${svnpassword}" != "" ]; then
@@ -71,11 +67,11 @@ scp_login() {
             echo
         fi
     done
+	write_conf_enc "svn" "svnpassword" $svnpassword $svnuser
 }
 
 scp_verify_login() {
-    scp_login
-	scp_write_conf
+    scp_login	
 	svnout=$(svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive)
 	if [ "${svnout}" == "" ]; then
 		echo "SVN Auth Failed!"
@@ -89,6 +85,9 @@ scp_revision() {
 }
 
 scp_checkout() {
+	svnuser=$(read_conf "svn" "svnuser")
+	svnpassword=$(read_conf_enc "svn" "svnpassword" $svnuser)
+	
 	for cartridge in "${cartridges[@]}"; do		
 		cartdir="${homedir}/$cartridge"
 		echo

@@ -1,11 +1,18 @@
 js_minify() {
-	echo
-	local minifyJS="N"
-	read -n 1 -p "Would you like to minify all Javascript files [y/N]? " minifyJS
-	minifyJS=${minifyJS:-"N"}	
+	echo	
+	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
+	local minifyJS=$(read_conf $demandwareServer "minifyJS" "N")
 	
+	if [ "${minifyJS^^}" == "Y" ]; then
+		read -n 1 -p "Would you like to minify all Javascript files [Y/n]? " t_minifyJS
+	else
+		read -n 1 -p "Would you like to minify all Javascript files [y/N]? " t_minifyJS
+	fi
+	minifyJS=${t_minifyJS:-${minifyJS^^}}	
 	
-	if [[ "$minifyJS" == "y" || "$minifyJS" == "Y" ]]; then
+	write_conf $demandwareServer "minifyJS" ${minifyJS^^}
+		
+	if [[ "${minifyJS^^}" == "Y" ]]; then
 		if ! gem spec uglifier > /dev/null 2>&1; then	
 			echo
 			local installMinify="N"

@@ -30,18 +30,13 @@ else
 	iscygwin=false
 fi
 
+source ${deploydir}/bin/conf.sh
 source ${deploydir}/bin/depends.sh
 source ${deploydir}/bin/color.sh
-source ${deploydir}/conf/deploy.conf
 source ${deploydir}/bin/scp.sh
 source ${deploydir}/bin/minify.sh
 source ${deploydir}/bin/func.sh
 source ${deploydir}/bin/dwdav.sh
-
-demandwareCertificatePassword=$(echo "$demandwareCertificatePassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$demandwareCertificateSRL")
-clientCertificatePassword=$(echo "$clientCertificatePassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$clientCertificate")
-
-
 
 if [[ ! -e ${deploydir}/conf/cartridges.conf || ! -s ${deploydir}/conf/cartridges.conf ]]; then
     touch ${deploydir}/conf/cartridges.conf
@@ -65,7 +60,6 @@ case "$1" in
 			dw_configure
             build_number
 			minify			
-			dw_write_config
 			zip_cartridges
 			dw_upload_build
 			scp_tag
@@ -77,7 +71,6 @@ case "$1" in
 			scp_checkout			
             build_number
 			minify
-			dw_write_config
 			zip_cartridges	
 			scp_tag
 			echo
@@ -91,7 +84,6 @@ case "$1" in
             ;;
         cert)
 			dw_configure
-			write_config
 			echo
 			echo "Client certificate created."
             ;;
@@ -100,6 +92,9 @@ case "$1" in
 			dw_upload_build
 			echo
 			echo "Cartridges uploaded to $dwbuild."			
+			;;
+		test)		
+			css_minify
 			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"

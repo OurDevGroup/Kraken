@@ -1,8 +1,10 @@
 requiresClientCertificate=false
-certSubj="/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com"
+certSubj=$(read_conf "deploy" "certSubj" "/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com")
 
 dw_configure() {
 	echo
+	demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
+	
     local serverProvided=false
     while ! $serverProvided; do
 		if [ "${demandwareServer}" != "" ]; then
@@ -21,19 +23,23 @@ dw_configure() {
         fi
     done
 	
+	write_conf "deploy" "demandwareServer" $demandwareServer
+	
 	if [ -f "${deploydir}/conf/${demandwareServer}.conf" ]; then
 		source "${deploydir}/conf/${demandwareServer}.conf"
 	else
 		touch "${deploydir}/conf/${demandwareServer}.conf"
 		echo "Generating new server configuration."
+		echo
 	fi
 	
+	demandwareUsername=$(read_conf $demandwareServer "demandwareUsername")		
 	local dwUserProvided=false
     while ! $dwUserProvided; do
 		if [ "${demandwareUsername}" != "" ]; then
 			read -p "Please enter the username for $demandwareServer [$demandwareUsername]: " newdwuser
 		else
-			read -p "Please enter the username for $demandwareServer : " newdwuser
+			read -p "Please enter the username for $demandwareServer: " newdwuser
 		fi
 		
 		demandwareUsername=${newdwuser:-$demandwareUsername}
@@ -44,17 +50,16 @@ dw_configure() {
             dwUserProvided=true
             echo
         fi
-    done
+    done	
+	write_conf $demandwareServer "demandwareUsername" $demandwareUsername
 
-	local dwPassProvided=false
-    if [ "$demandwarePassword" != "" ]; then
-	   demandwarePassword=$(echo "$demandwarePassword" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$demandwareUsername")
-    fi
+	demandwarePassword=$(read_conf_enc $demandwareServer "demandwarePassword" $demandwareUsername)		
+	local dwPassProvided=false	
     while ! $dwPassProvided; do
 		if [ "$demandwarePassword" != "" ]; then
 			read -p "Please enter the password for $demandwareServer [stored password]: " -s newdwpass
 		else
-			read -p "Please enter the password for $demandwareServer : " -s newdwpass
+			read -p "Please enter the password for $demandwareServer: " -s newdwpass
 		fi
 		
 		demandwarePassword=${newdwpass:-$demandwarePassword}
@@ -65,9 +70,11 @@ dw_configure() {
             dwPassProvided=true
             echo
         fi
-    done	
+    done
+	write_conf_enc $demandwareServer "demandwarePassword" $demandwarePassword $demandwareUsername	
 	
 	echo
+	requiresClientCertificate=$(read_conf $demandwareServer "requiresClientCertificate")
 	if [[ $requiresClientCertificate == true ]]; then
 		read -p "Does the server require a client certificate [Y/n]: " needsCert
 		needsCert=${needsCert:-Y}
@@ -76,17 +83,18 @@ dw_configure() {
 		needsCert=${needsCert:-N}
 	fi
 	
-	if [[ "$needsCert" == "Y" ]]; then
+	if [[ "${needsCert^^}" == "Y" ]]; then
 		requiresClientCertificate=true
 		echo
 		read -p "Do you need to generate a client certificate [y/N]: " genCert
 		genCert=${genCert:-N}
-		if [ "${genCert}" == "Y" ]; then
+		if [ "${genCert^^}" == "Y" ]; then
 			make_clientcert
 		fi
 	else
 		requiresClientCertificate=false
 	fi
+	write_conf $demandwareServer "requiresClientCertificate" $requiresClientCertificate
 	
 	if [[ $requiresClientCertificate == true ]] && [[ $genCert == false ]]; then
 		local certProvided=false
@@ -106,15 +114,28 @@ dw_configure() {
 				certProvided=true
 				echo
 			fi			
+		done
+		
+		local certPassProvided=false
+		echo
+		while ! $certPassProvided; do
+			if [ "${clientCertificate}" != "" ]; then
+				read -p "Please enter the client certificate password: " clientCertificatePassword
+			fi
+
+			if [ "$clientCertificatePassword" == "" ]; then
+				echo "Certificate password cannot be empty!"
+			else
+				certPassProvided=true
+				echo
+			fi			
 		done		
+		
+		write_conf $demandwareServer "clientCertificate" $clientCertificate
+		write_conf_enc $demandwareServer "clientCertificatePassword" $clientCertificatePassword $clientCertificate
 	fi
 
-	dw_write_config
-}
-
-dw_write_config() {
-	local encpass=$(echo "$demandwarePassword" | openssl enc -aes-128-cbc -a -salt -pass "pass:$demandwareUsername")	
-	echo -e "#!/bin/bash\nrequiresClientCertificate=$requiresClientCertificate\ndemandwarePassword=$encpass\ndemandwareUsername=$demandwareUsername\nminifyJS=$minifyJS\nminifyCSS=$minifyCSS" > ${deploydir}/conf/${demandwareServer}.conf
+	write_conf "deploy" "certSubj" $certSubj
 }
 
 dw_upload_build() {

@@ -1,11 +1,18 @@
 css_minify() {
-	echo
-	local minifyCSS="N"
-	read -n 1 -p "Would you like to minify all .css files [y/N]? " minifyCSS
-	minifyCSS=${minifyCSS:-"N"}	
+	echo	
+	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)	
+	local minifyCSS=$(read_conf $demandwareServer "minifyCSS" "N")
 	
+	if [ "${minifyCSS^^}" == "Y" ]; then
+		read -n 1 -p "Would you like to minify all .css files [Y/n]? " t_minifyCSS
+	else
+		read -n 1 -p "Would you like to minify all .css files [y/N]? " t_minifyCSS
+	fi
+	minifyCSS=${t_minifyCSS:-${minifyCSS^^}}
 	
-	if [[ "$minifyCSS" == "y" || "$minifyCSS" == "Y" ]]; then	
+	write_conf $demandwareServer "minifyCSS" ${minifyCSS^^}
+	
+	if [[ "${minifyCSS^^}" == "Y" ]]; then	
 		if ! gem spec cssminify > /dev/null 2>&1; then	
 			echo
 			local installMinify="N"

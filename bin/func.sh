@@ -1,6 +1,6 @@
 build_number() {
 	build=$(($build + 1))
-	write_config
+	write_conf "deploy" "build" $build
 }
 
 zip_cartridges() {
@@ -17,12 +17,6 @@ zip_cartridges() {
 				zip -r $zipfile $(echo $cartridge | tr -d '\r') -x "*$(scp_exclude)*" -x "*.DS_Store"
 			fi
 		done		
-}
-
-write_config() {
-	local encpass=$(echo "$demandwareCertificatePassword" | openssl enc -aes-128-cbc -a -salt -pass "pass:$demandwareCertificateSRL")
-	local encclientpass=$(echo "$clientCertificatePassword" | openssl enc -aes-128-cbc -a -salt -pass "pass:$clientCertificate")
-	echo -e "#!/bin/bash\nbuild=$build\ndemandwareServer=$demandwareServer\ndemandwareCertificateSRL=$demandwareCertificateSRL\ndemandwareCertificateCRT=$demandwareCertificateCRT\ndemandwareCertificateKEY=$demandwareCertificateKEY\ndemandwareCertificatePassword=$encpass\ncertSubj=\"$certSubj\"\nclientCertificate=$clientCertificate\nclientCertificatePassword=$encclientpass" > ${deploydir}/conf/deploy.conf
 }
 
 make_clientcert() {
@@ -122,7 +116,12 @@ make_clientcert() {
 	openssl x509 -CA ${deploydir}/certs/$demandwareCertificateCRT -CAkey ${deploydir}/certs/$demandwareCertificateKEY -CAserial ${deploydir}/certs/$demandwareCertificateSRL -req -in ${deploydir}/certs/$clientCertificate.req -out ${deploydir}/certs/$clientCertificate.pem -days 360 -passin "pass:$demandwareCertificatePassword"
 	openssl pkcs12 -export -in ${deploydir}/certs/$clientCertificate.pem -inkey ${deploydir}/certs/$clientCertificate.key -certfile ${deploydir}/certs/$demandwareCertificateCRT -name "$clientCertificate" -out ${deploydir}/certs/$clientCertificate.p12 -passout "pass:$clientCertificatePassword"
 	
-	write_config
+	write_conf $demandwareServer "clientCertificate" $clientCertificate
+	write_conf_enc $demandwareServer "clientCertificatePassword" $clientCertificatePassword $clientCertificate
+	write_conf "deploy" "demandwareCertificateSRL" $demandwareCertificateSRL
+	write_conf "deploy" "demandwareCertificateCRT" $demandwareCertificateCRT
+	write_conf "deploy" "demandwareCertificateKEY" $demandwareCertificateKEY
+	write_conf_enc "deploy" "demandwareCertificatePassword" $demandwareCertificatePassword $demandwareCertificateSRL
 }
 
 kraken() {
