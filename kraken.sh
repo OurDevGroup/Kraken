@@ -55,6 +55,7 @@ echo
 
 case "$1" in
         deploy)
+			scp_configure
 			scp_verify_login
 			scp_checkout			
 			dw_configure
@@ -63,10 +64,10 @@ case "$1" in
 			zip_cartridges
 			dw_upload_build
 			scp_tag
-			echo
 			echo "Cartridges uploaded to $dwbuild."
             ;;                     
         build)			
+			scp_configure
 			scp_verify_login
 			scp_checkout			
             build_number
@@ -77,9 +78,9 @@ case "$1" in
 			echo "Cartridge archive created."
             ;;         
         update)
+			scp_configure
             scp_verify_login
 			scp_checkout            
-			echo
 			echo "Updated cartridges."
             ;;
         cert)
@@ -94,7 +95,13 @@ case "$1" in
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
 		test)		
-			css_minify
+			x="hello"
+			a="world$x"
+			eval "$a=100"
+			echo "$a=100"
+			echo "echo \$${a}"
+			eval "echo \$${a}"
+			
 			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"

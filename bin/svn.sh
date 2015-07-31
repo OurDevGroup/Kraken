@@ -1,116 +1,110 @@
 #!/bin/bash
-if [ ! -f "${deploydir}/conf/svn.conf" ]; then	
-	touch "${deploydir}/conf/svn.conf"
-	echo "Generating new svn configuration."
-fi
-
-scp_get_repo() {
-	svnrepo=$(read_conf "svn" "svnrepo")
-    repoProvided=false
-    while ! $repoProvided; do
-		if [ "${svnrepo}" != "" ]; then
-			read -p "Please enter your svn repo URL [stored]: " newsvnurl
-		else
-			read -p "Please enter your svn repo URL: " newsvnurl
+svn_repo_md5() {	
+	if [ "$1" == "" ]; then
+		local svnrepo=$(read_conf "svn" "repo")
+		local baserepo=$svnrepo
+	else
+		local svnrepo=$(read_conf "svn" "provider.$1.repo")
+		if [[ "$1" != "" && "$svnrepo" == *$cartridge ]]; then
+			local l=$[${#svnrepo} - ${#cartridge}]
+			local baserepo=${svnrepo:0:$l}			
 		fi
-		
-		svnrepo=${newsvnurl:-$svnrepo}
-        
-		if [ "$svnrepo" == "" ]; then
-            echo "Repository URL cannot be empty!"
-        else
-            repoProvided=true
-            echo
-        fi
-    done
-	write_conf "svn" "svnrepo" $svnrepo
+	fi	
+	
+	repomd5=$(echo -n $baserepo | md5sum | cut -d ' ' -f 1)
+	echo $repomd5
+	
+	return
 }
 
-scp_login() {
-	scp_get_repo
-
-	svnuser=$(read_conf "svn" "svnuser")
-    local usernameProvided=false
-    while ! $usernameProvided; do
-		if [ "${svnuser}" != "" ]; then
-			read -p "Please enter your svn username [$svnuser]: " newsvnuser
-		else
-			read -p "Please enter your svn username: " newsvnuser
-		fi
+svn_get_repo() {
+	if [ "$1" == "" ]; then
+		svnrepo=$(prompt "svn" "repo" $string "" "Please enter your SVN repo URL" true)
+	else
+		baserepo=$(read_conf "svn" "baserepo")
 		
-		svnuser=${newsvnuser:-$svnuser}
-        
-		if [ "$svnuser" == "" ]; then
-            echo "Username cannot be empty!"
-        else
-            usernameProvided=true
-            echo
-        fi
-    done
-	write_conf "svn" "svnuser" $svnuser
-
-	svnpassword=$(read_conf_enc "svn" "svnpassword" $svnuser)
-	local passwordProvided=false
-    while ! $passwordProvided; do
-		if [ "${svnpassword}" != "" ]; then
-			read -p "Please enter your svn password [stored password]: " -s newsvnpass
-		else
-			read -p "Please enter your svn password: " -s newsvnpass
-		fi
-		
-		svnpassword=${newsvnpass:-$svnpassword}
-        
-		if [ "$svnpassword" == "" ]; then
-            echo "Password cannot be empty!"
-        else
-            passwordProvided=true
-            echo
-        fi
-    done
-	write_conf_enc "svn" "svnpassword" $svnpassword $svnuser
-}
-
-scp_verify_login() {
-    scp_login	
-	svnout=$(svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive)
-	if [ "${svnout}" == "" ]; then
-		echo "SVN Auth Failed!"
-		exit
+		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
+		svnrepo=$(prompt "svn" "provider.$1.repo" $string "$baserepo$cartridge" "Please enter your svn repo URL${a}" true)
+				
+		if [[ "$1" != "" && "$svnrepo" == *$cartridge ]]; then
+			local l=$[${#svnrepo} - ${#cartridge}]
+			local baserepo=${svnrepo:0:$l}
+			write_conf "svn" "baserepo" "$baserepo"
+		fi		
 	fi
+	echo
 }
 
-scp_revision() {
+svn_login() {
+	svn_get_repo "$1"	
+
+	local repomd5=$(svn_repo_md5)
+	
+	svnuser=$(prompt "svn" "$repomd5.user" $string "" "Please enter your svn username" true)
+	echo
+	
+	svnpassword=$(secure_prompt "svn" "$repomd5.pass" $string "" "Please enter your svn password" true $svnuser)
+	echo
+}
+
+svn_verify_login() {
+    svn_login "$1"
+	
+	local repomd5=$(svn_repo_md5)
+	local isAuthed=$(eval "echo \$${repomd5}")
+	
+	if [ ! $isAuthed ]; then
+		svnout=$(svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive)
+		
+		if [ "${svnout}" == "" ]; then
+			echo "SVN Auth Failed!"
+			exit
+		else		
+			echo
+			echo "SVN Authenticated."
+			local repomd5=$(svn_repo_md5)
+			eval "${repomd5}=true"
+		fi
+	fi
+	echo
+}
+
+svn_revision() {
 	local svnrev=`svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive | grep '^Revision:' | sed -e 's/^Revision: //'`
 	echo "$svnrev"
 }
 
-scp_checkout() {
-	svnuser=$(read_conf "svn" "svnuser")
-	svnpassword=$(read_conf_enc "svn" "svnpassword" $svnuser)
+svn_checkout() {
+	local svnuser=$(read_conf "svn" "svnuser")
+	local svnpassword=$(read_conf_enc "svn" "svnpassword" $svnuser)	
+	local cartdir="${homedir}/$1"
 	
-	for cartridge in "${cartridges[@]}"; do		
-		cartdir="${homedir}/$cartridge"
-		echo
-		echo "${cartridge}"
-		
-		if [ -d "$cartdir" ]; then
-			cd "$cartdir"
-			svn revert -R .
-			svn cleanup
-			svn update --username $svnuser --password $svnpassword --force
-		else 		
-			cd ${homedir}
-			svn checkout $(echo $svnrepo/${cartridge} | tr -d '\r') $(echo ${cartridge} | tr -d '\r') --username $svnuser --password $svnpassword
+	if [ -d "$cartdir" ]; then
+		cd "$cartdir"
+		svn revert -R .
+		svn cleanup
+		svn update --username $svnuser --password $svnpassword --force
+	else 		
+		local provider=$(read_conf "scp" "provider" "")
+
+		if [ "$provider" == "multi" ]; then
+			local cartrepo=$(read_conf "svn" "provider.$1.repo")			
+		else
+			local cartrepo=$(read_conf "svn" "repo")
 		fi
-		cd "${homedir}"
-	done
+		
+		cd ${homedir}
+		svn checkout $(echo $cartrepo | tr -d '\r') $(echo ${cartridge} | tr -d '\r') --username $svnuser --password $svnpassword
+	fi
+	cd "${homedir}"
+	echo
 }
 
-scp_exclude() {
+svn_exclude() {
 	echo ".svn"
 }
 
-scp_tag() {
+svn_tag() {
 	echo "Commit build information."
 }
 

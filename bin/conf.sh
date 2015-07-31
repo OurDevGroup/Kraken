@@ -1,3 +1,6 @@
+string="string"
+bool="bool"
+
 
 write_conf() {
 	local file="${deploydir}/conf/$1.conf"
@@ -55,7 +58,119 @@ read_conf_enc() {
 		local val=$(echo "$encval" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$3")
 		if [ $val ]; then
 			echo $val
+			return
 		fi					
 	fi
+	
+	echo $4
+	return
+}
+
+function trim {
+    echo $*
+}
+
+# $1 conf type
+# $2 variable_name
+# $3 variable_type
+# $4 variable_default
+# $5 prompt
+# $6 required
+# $7 passphrase
+# $8 store
+
+prompt() {	
+	if [ "$3" == "string" ]; then		
+		if [ "$7" == "" ]; then
+			local existingVal=$(read_conf $1 $2 $4)
+		else
+			local existingVal=$(read_conf_enc $1 $2 $7)
+		fi
+	else
+		local t_existingVal=$(read_conf $1 $2 $4)
+
+		if [ "$t_existingVal" == "true" ]; then
+			local existingVal=true
+		else
+			local existingVal=false
+		fi
+	fi
+	
+    local valProvided=false
+    while ! $valProvided; do
+		if [ "$3" == "string" ]; then
+			if [ "$existingVal" != "" ]; then
+				local dispVal=$existingVal
+				if [ "$7" == "" ]; then
+					local dispValLen=${#existingVal}
+					if [ ${dispValLen} -gt 40 ]; then
+						local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
+					fi			
+				else 
+					local dispVal="stored password"
+				fi
+				if [ "$7" == "" ]; then
+					read -p "$5 [$dispVal]: " newval
+				else
+					read -p "$5 [$dispVal]: " -s newval
+				fi
+			else
+				if [ "$7" == "" ]; then			
+					read -p "$5: " newval
+				else
+					read -p "$5: " -s newval
+				fi
+			fi
+		else
+			if [ $existingVal == true ]; then
+				read -n 1 -p "$5 [Y/n]: " yn_newval
+				yn_newval=${yn_newval:-Y}
+			else
+				read -p "$5 [y/N]: " yn_newval
+				yn_newval=${yn_newval:-N}
+			fi	
+		fi
+		
+		if [[ "$3" == "string" && "$existingVal" != "" ]]; then
+			newval=${newval:-$existingVal}
+		elif [ "$3" == "bool" ]; then			
+			if [ "${yn_newval^^}" == "Y" ]; then	
+				newval=true
+			else
+				newval=false
+			fi
+		fi
+        
+		if [[ "$newval" == "" && required ]]; then
+            echo "$2 cannot be empty!"
+        else
+            valProvided=true
+        fi
+    done
+	
+	if [ "$8" == "" ] || [ $8 ]; then
+		if [ "$7" == "" ]; then
+			write_conf $1 $2 "$newval"
+		else
+			write_conf_enc $1 $2 "$newval" $7
+		fi
+	fi
+	
+	echo $newval
+	return
+}
+
+# $1 conf type
+# $2 variable_name
+# $3 variable_type
+# $4 variable_default
+# $5 prompt
+# $6 required
+# $7 passphrase
+# $8 store
+
+secure_prompt() {
+	local secVal=$(prompt "$1" "$2" "$3" "$4" "$5" "$6" true "$7" $8)
+	echo $secVal
 	return
 }

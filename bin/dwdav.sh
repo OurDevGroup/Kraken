@@ -2,7 +2,6 @@ requiresClientCertificate=false
 certSubj=$(read_conf "deploy" "certSubj" "/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com")
 
 dw_configure() {
-	echo
 	demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	
     local serverProvided=false
