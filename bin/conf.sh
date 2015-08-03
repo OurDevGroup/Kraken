@@ -147,10 +147,8 @@ prompt() {
             valProvided=true
         fi
     done
-	
-	echo "bga $8"
-	
-	if [ "$8" == "" ] || [ $8 ]; then
+		
+	if [ "$8" == "" ] || [ $8 == true ]; then
 		if [ "$7" == "" ]; then
 			write_conf $1 $2 "$newval"
 		else

@@ -52,10 +52,9 @@ scp_configure() {
 	local provider=$(read_conf "scp" "provider" "")
 	local configProvider=false
 	if [ "$provider" != "" ]; then
-		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true "" false)
-		echo
+		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true "" true)
 	fi
-	exit 1
+	
 	if [ "$provider" == "" ] || [ $configProvider == true ]; then	
 		if [ "$provider" == "multi" ]; then
 			local eachCartridge=true
