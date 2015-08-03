@@ -52,17 +52,17 @@ scp_configure() {
 	local provider=$(read_conf "scp" "provider" "")
 	local configProvider=false
 	if [ "$provider" != "" ]; then
-		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true false)
+		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true "" false)
 		echo
 	fi
-	
+	exit 1
 	if [ "$provider" == "" ] || [ $configProvider == true ]; then	
 		if [ "$provider" == "multi" ]; then
 			local eachCartridge=true
 		else
 			local eachCartridge=false;
 		fi
-		local eachCartridge=$(prompt "scp" "eachCartridge" $bool $eachCartridge "Do you want to configure a source control provider for each cartridge" true false)
+		local eachCartridge=$(prompt "scp" "eachCartridge" $bool $eachCartridge "Do you want to configure a source control provider for each cartridge" true "" false)
 		
 		echo
 		if [ $eachCartridge == true ]; then
