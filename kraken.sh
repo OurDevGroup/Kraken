@@ -94,14 +94,13 @@ case "$1" in
 			echo
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
-		test)		
-			x="hello"
-			a="world$x"
-			eval "$a=100"
-			echo "$a=100"
-			echo "echo \$${a}"
-			eval "echo \$${a}"
-			
+		test)
+			git ls-remote git@codebasehq.com:michaels/michaels-site-with-git/mik.git &>-
+			if [ "$?" -ne 0 ]; then
+				echo "[ERROR] Unable to read from repo"
+				exit 1;
+			fi		
+
 			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"

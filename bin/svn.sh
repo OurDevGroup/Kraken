@@ -24,7 +24,7 @@ svn_get_repo() {
 		baserepo=$(read_conf "svn" "baserepo")
 		
 		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
-		svnrepo=$(prompt "svn" "provider.$1.repo" $string "$baserepo$cartridge" "Please enter your svn repo URL${a}" true)
+		svnrepo=$(prompt "svn" "provider.$1.repo" $string "$baserepo$cartridge" "Please enter your SVN repo URL${a}" true)
 				
 		if [[ "$1" != "" && "$svnrepo" == *$cartridge ]]; then
 			local l=$[${#svnrepo} - ${#cartridge}]
