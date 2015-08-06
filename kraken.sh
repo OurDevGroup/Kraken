@@ -59,7 +59,7 @@ case "$1" in
 			scp_verify_login
 			scp_checkout			
 			dw_configure
-            build_number
+            inc_build_number
 			minify			
 			zip_cartridges
 			dw_upload_build
@@ -70,7 +70,7 @@ case "$1" in
 			scp_configure
 			scp_verify_login
 			scp_checkout			
-            build_number
+            inc_build_number
 			minify
 			zip_cartridges	
 			scp_tag

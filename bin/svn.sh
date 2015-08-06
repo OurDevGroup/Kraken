@@ -70,29 +70,43 @@ svn_verify_login() {
 }
 
 svn_revision() {
+	local provider=$(read_conf "scp" "provider" "")
+
+	if [ "$provider" == "multi" ]; then
+		local svnrepo=$(read_conf "svn" "provider.$1.repo")			
+	else
+		local svnrepo=$(read_conf "svn" "repo")
+	fi
+	
+	local repomd5=$(svn_repo_md5)
+	local svnuser=$(read_conf "svn" "$repomd5.user")
+	local svnpassword=$(read_conf_enc "svn" "$repomd5.pass" $svnuser)
+	
 	local svnrev=`svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive | grep '^Revision:' | sed -e 's/^Revision: //'`
 	echo "$svnrev"
 }
 
 svn_checkout() {
-	local svnuser=$(read_conf "svn" "svnuser")
-	local svnpassword=$(read_conf_enc "svn" "svnpassword" $svnuser)	
+	local provider=$(read_conf "scp" "provider" "")
+
+	if [ "$provider" == "multi" ]; then
+		local cartrepo=$(read_conf "svn" "provider.$1.repo")			
+	else
+		local cartrepo=$(read_conf "svn" "repo")
+	fi
+
+	local repomd5=$(svn_repo_md5)
+	local svnuser=$(read_conf "svn" "$repomd5.user")
+	local svnpassword=$(read_conf_enc "svn" "$repomd5.pass" $svnuser)	
+	
 	local cartdir="${homedir}/$1"
 	
 	if [ -d "$cartdir" ]; then
 		cd "$cartdir"
-		svn revert -R .
 		svn cleanup
+		svn revert -R .		
 		svn update --username $svnuser --password $svnpassword --force
 	else 		
-		local provider=$(read_conf "scp" "provider" "")
-
-		if [ "$provider" == "multi" ]; then
-			local cartrepo=$(read_conf "svn" "provider.$1.repo")			
-		else
-			local cartrepo=$(read_conf "svn" "repo")
-		fi
-		
 		cd ${homedir}
 		svn checkout $(echo $cartrepo | tr -d '\r') $(echo ${cartridge} | tr -d '\r') --username $svnuser --password $svnpassword
 	fi

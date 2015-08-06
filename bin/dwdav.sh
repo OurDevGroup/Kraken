@@ -138,12 +138,16 @@ dw_configure() {
 }
 
 dw_upload_build() {
-	day=`/bin/date +%Y%m%d`	
-	rev=$(scp_revision)
-	dwbuild=${day}_${rev}_${build}
+	local day=`/bin/date +%Y%m%d`	
+	local rev=$(scp_revision)
+	local bn=$(read_conf "deploy" "build" 0)
+	dwbuild=${day}_${rev}_${bn}
     
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
-    
+	
+	echo $dwbuild
+	
+    exit 1
 	if [ $requiresClientCertificate == true ]; then
         echo
         echo "Uploading with certificate authentication..."

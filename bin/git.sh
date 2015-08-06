@@ -9,7 +9,7 @@ git_repo_md5() {
 			local l=$[${#gitrepo} - ${#cartridge}]
 			local baserepo=${gitrepo:0:$l}			
 		fi
-	fi	
+	fi
 	
 	repomd5=$(echo -n $baserepo | md5sum | cut -d ' ' -f 1)
 	echo $repomd5
@@ -17,7 +17,7 @@ git_repo_md5() {
 	return
 }
 
-svn_get_repo() {
+git_get_repo() {
 	if [ "$1" == "" ]; then
 		gitrepo=$(prompt "git" "repo" $string "" "Please enter your Git repo URL (.git)" true)
 		gitpath=$(prompt "git" "repo" $string "" "Please enter your Git repo catridge path" true)

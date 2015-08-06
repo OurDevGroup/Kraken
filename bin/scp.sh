@@ -34,7 +34,7 @@ scp_checkout () {
 		for cartridge in "${cartridges[@]}"; do		
 			echo
 			echo "${cartridge}"
-			if [ "${provider^^}" == "SVN" ]; then
+			if [ "${provider^^}" == "SVN" ]; then			
 				svn_checkout "$cartridge" 
 			fi
 		done
@@ -52,7 +52,7 @@ scp_configure() {
 	local provider=$(read_conf "scp" "provider" "")
 	local configProvider=false
 	if [ "$provider" != "" ]; then
-		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true "" true)
+		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true "" false)
 	fi
 	
 	if [ "$provider" == "" ] || [ $configProvider == true ]; then	
@@ -77,11 +77,47 @@ scp_configure() {
 		else
 			local provider=$(prompt "scp" "provider" $string "svn" "What source control provider do you use (svn/git)" true)
 			echo
-			if [ "${provider^^}" == "SVN" ]; then
+			if [ "${provider^^}" == "SVN" ]; then			
 				svn_verify_login 
 			fi
 		fi				
 	fi	
 	scpVerified=true
+}
+
+scp_revision() {
+	local provider=$(read_conf "scp" "provider" "")
+	if [ "$provider" == "multi" ]; then
+		local cartridge=$1
+		if [ "$1" == "" ]; then
+			local cartridge=${cartridges[0]}
+		fi
+		local cartProvider=$(read_conf "scp" "provider.$cartridge")
+		if [ "${cartProvider^^}" == "SVN" ]; then
+			echo $(svn_revision)
+		fi		
+	else
+		if [ "${provider^^}" == "SVN" ]; then			
+			echo $(svn_revision)
+		fi
+	fi
+}
+
+scp_exclude() {
+	local provider=$(read_conf "scp" "provider" "")
+	if [ "$provider" == "multi" ]; then
+		local cartridge=$1
+		if [ "$1" == "" ]; then
+			local cartridge=${cartridges[0]}
+		fi
+		local cartProvider=$(read_conf "scp" "provider.$cartridge")
+		if [ "${cartProvider^^}" == "SVN" ]; then
+			echo $(svn_exclude)
+		fi		
+	else
+		if [ "${provider^^}" == "SVN" ]; then			
+			echo $(svn_exclude)
+		fi
+	fi
 }
 

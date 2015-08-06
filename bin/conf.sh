@@ -149,6 +149,7 @@ prompt() {
     done
 		
 	if [ "$8" == "" ] || [ $8 == true ]; then
+	
 		if [ "$7" == "" ]; then
 			write_conf $1 $2 "$newval"
 		else
@@ -170,7 +171,7 @@ prompt() {
 # $8 store
 
 secure_prompt() {
-	local secVal=$(prompt "$1" "$2" "$3" "$4" "$5" "$6" true "$7" $8)
+	local secVal=$(prompt "$1" "$2" "$3" "$4" "$5" "$6" "$7" $8)
 	echo $secVal
 	return
 }
