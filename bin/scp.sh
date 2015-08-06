@@ -53,6 +53,7 @@ scp_configure() {
 	local configProvider=false
 	if [ "$provider" != "" ]; then
 		local configProvider=$(prompt "scp" "configProvider" $bool false "Do you want to re-configure a source control provider" true "" false)
+		echo
 	fi
 	
 	if [ "$provider" == "" ] || [ $configProvider == true ]; then	
@@ -91,10 +92,10 @@ scp_revision() {
 		local cartridge=$1
 		if [ "$1" == "" ]; then
 			local cartridge=${cartridges[0]}
-		fi
-		local cartProvider=$(read_conf "scp" "provider.$cartridge")
+		fi		
+		local cartProvider=$(read_conf "scp" "provider.$cartridge")		
 		if [ "${cartProvider^^}" == "SVN" ]; then
-			echo $(svn_revision)
+			echo $(svn_revision $cartridge)
 		fi		
 	else
 		if [ "${provider^^}" == "SVN" ]; then			

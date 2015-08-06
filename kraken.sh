@@ -95,11 +95,7 @@ case "$1" in
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
 		test)
-			git ls-remote git@codebasehq.com:michaels/michaels-site-with-git/mik.git &>-
-			if [ "$?" -ne 0 ]; then
-				echo "[ERROR] Unable to read from repo"
-				exit 1;
-			fi		
+			echo $(scp_revision)
 
 			;;
         *)
