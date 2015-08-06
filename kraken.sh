@@ -5,6 +5,14 @@ deploydir="$(cd "$(dirname "$0")" && pwd)"
 #	cd ..
 #fi
 
+if [ "$2" == "!" ]; then
+	ReleaseTheKraken=true;
+else
+	ReleaseTheKraken=false;
+fi
+
+
+
 if [ ! -d ${deploydir}/working ]; then
 	mkdir ${deploydir}/working
 fi

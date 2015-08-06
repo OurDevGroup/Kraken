@@ -86,6 +86,11 @@ prompt() {
 		else
 			local existingVal=$(read_conf_enc $1 $2 $7)
 		fi
+				
+		if [ $ReleaseTheKraken == true ] && [ "$existingVal" != "" ]; then
+			echo "test"
+			return
+		fi
 	else
 		local t_existingVal=$(read_conf $1 $2 $4)
 
@@ -93,6 +98,11 @@ prompt() {
 			local existingVal=true
 		else
 			local existingVal=false
+		fi
+		
+		if [ $ReleaseTheKraken == true ]; then
+			echo $existingVal
+			return
 		fi
 	fi
 	
