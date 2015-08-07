@@ -2,139 +2,45 @@ requiresClientCertificate=false
 certSubj=$(read_conf "deploy" "certSubj" "/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com")
 
 dw_configure() {
-	demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	
-    local serverProvided=false
-    while ! $serverProvided; do
-		if [ "${demandwareServer}" != "" ]; then
-			read -p "Please enter the target Demandware server [$demandwareServer]: " newdwserver
-		else
-			read -p "Please enter the target Demandware server: " newdwserver
-		fi
+	demandwareServer=$(prompt "deploy" "demandwareServer" $string "" "Please enter the target Demandware server" true "" true)
+	echo
 		
-		demandwareServer=${newdwserver:-$demandwareServer}
-        
-		if [ "$demandwareServer" == "" ]; then
-            echo "Server cannot be empty!"
-        else
-            serverProvided=true
-            echo
-        fi
-    done
-	
-	write_conf "deploy" "demandwareServer" $demandwareServer
-	
 	if [ -f "${deploydir}/conf/${demandwareServer}.conf" ]; then
 		source "${deploydir}/conf/${demandwareServer}.conf"
 	else
 		touch "${deploydir}/conf/${demandwareServer}.conf"
 		echo "Generating new server configuration."
 		echo
-	fi
-	
-	demandwareUsername=$(read_conf $demandwareServer "demandwareUsername")		
-	local dwUserProvided=false
-    while ! $dwUserProvided; do
-		if [ "${demandwareUsername}" != "" ]; then
-			read -p "Please enter the username for $demandwareServer [$demandwareUsername]: " newdwuser
-		else
-			read -p "Please enter the username for $demandwareServer: " newdwuser
-		fi
-		
-		demandwareUsername=${newdwuser:-$demandwareUsername}
-        
-		if [ "$demandwareUsername" == "" ]; then
-            echo "Username cannot be empty!"
-        else
-            dwUserProvided=true
-            echo
-        fi
-    done	
-	write_conf $demandwareServer "demandwareUsername" $demandwareUsername
+	fi	
 
-	demandwarePassword=$(read_conf_enc $demandwareServer "demandwarePassword" $demandwareUsername)		
-	local dwPassProvided=false	
-    while ! $dwPassProvided; do
-		if [ "$demandwarePassword" != "" ]; then
-			read -p "Please enter the password for $demandwareServer [stored password]: " -s newdwpass
-		else
-			read -p "Please enter the password for $demandwareServer: " -s newdwpass
-		fi
-		
-		demandwarePassword=${newdwpass:-$demandwarePassword}
-        
-		if [ "$demandwarePassword" == "" ]; then
-            echo "Password cannot be empty!"
-        else
-            dwPassProvided=true
-            echo
-        fi
-    done
-	write_conf_enc $demandwareServer "demandwarePassword" $demandwarePassword $demandwareUsername	
+	demandwareUsername=$(prompt $demandwareServer "demandwareUsername" $string "" "Please enter the username for $demandwareServer" true "" true)
+	echo 
 	
+	demandwarePassword=$(secure_prompt $demandwareServer "demandwarePassword" $string "" "Please enter the password for $demandwareServer" true "$demandwareUsername" true)	
 	echo
-	requiresClientCertificate=$(read_conf $demandwareServer "requiresClientCertificate")
-	if [[ $requiresClientCertificate == true ]]; then
-		read -p "Does the server require a client certificate [Y/n]: " needsCert
-		needsCert=${needsCert:-Y}
-	else
-		read -p "Does the server require a client certificate [y/N]: " needsCert
-		needsCert=${needsCert:-N}
-	fi
 	
-	if [[ "${needsCert^^}" == "Y" ]]; then
-		requiresClientCertificate=true
+	requiresClientCertificate=$(prompt $demandwareServer "requiresClientCertificate" $bool "" "Does the server require a client certificate" true "" true)
+	echo
+		
+	local genCert=false
+	if [ $requiresClientCertificate == true ]; then			
+		local genCert=$(prompt $demandwareServer "generateClientCert" $bool false "Do you need to generate a client certificate" true "" false)
 		echo
-		read -p "Do you need to generate a client certificate [y/N]: " genCert
-		genCert=${genCert:-N}
-		if [ "${genCert^^}" == "Y" ]; then
+		if [ $genCert == true ]; then
 			make_clientcert
 		fi
-	else
-		requiresClientCertificate=false
 	fi
-	write_conf $demandwareServer "requiresClientCertificate" $requiresClientCertificate
-	
-	if [[ $requiresClientCertificate == true ]] && [[ $genCert == false ]]; then
-		local certProvided=false
-		echo
-		while ! $certProvided; do
-			if [ "${clientCertificate}" != "" ]; then
-				read -p "Please enter the client certificate file [$clientCertificate]: " newcert
-			else
-				read -p "Please enter the client certificate file: " newcert
-			fi	
-			
-			clientCertificate=${newcert:-$clientCertificate}
-			
-			if [ "$clientCertificate" == "" ]; then
-				echo "Certificate name cannot be empty!"
-			else
-				certProvided=true
-				echo
-			fi			
-		done
 		
-		local certPassProvided=false
+	if [ $requiresClientCertificate == true ] && [ $genCert == false ]; then				
+		clientCertificate==$(prompt $demandwareServer "clientCertificate" $string "" "Please enter the client certificate file" true "" true)
 		echo
-		while ! $certPassProvided; do
-			if [ "${clientCertificate}" != "" ]; then
-				read -p "Please enter the client certificate password: " clientCertificatePassword
-			fi
-
-			if [ "$clientCertificatePassword" == "" ]; then
-				echo "Certificate password cannot be empty!"
-			else
-				certPassProvided=true
-				echo
-			fi			
-		done		
 		
-		write_conf $demandwareServer "clientCertificate" $clientCertificate
-		write_conf_enc $demandwareServer "clientCertificatePassword" $clientCertificatePassword $clientCertificate
+		clientCertificatePassword=$(secure_prompt $demandwareServer "clientCertificatePassword" $string "" "Please enter the client certificate password" true "$clientCertificate" true)
+		echo		
 	fi
 
-	write_conf "deploy" "certSubj" $certSubj
+	write_conf "deploy" "certSubj" "$certSubj"
 }
 
 dw_upload_build() {
@@ -144,6 +50,8 @@ dw_upload_build() {
 	dwbuild=${day}_${rev}_${bn}
     
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
+	
+	exit 1
 	
 	if [ $requiresClientCertificate == true ]; then
         echo

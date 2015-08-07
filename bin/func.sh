@@ -10,6 +10,8 @@ zip_cartridges() {
 		
 		zipfile="build.zip"		
 		cd "$homedir"
+		
+		rm -f build.zip
         
 		for cartridge in "${cartridges[@]}"; do					
 			echo
