@@ -2,7 +2,6 @@ requiresClientCertificate=false
 certSubj=$(read_conf "deploy" "certSubj" "/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com")
 
 dw_configure() {
-	echo
 	demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	
     local serverProvided=false
@@ -139,12 +138,13 @@ dw_configure() {
 }
 
 dw_upload_build() {
-	day=`/bin/date +%Y%m%d`	
-	rev=$(scp_revision)
-	dwbuild=${day}_${rev}_${build}
+	local day=`/bin/date +%Y%m%d`	
+	local rev=$(scp_revision)
+	local bn=$(read_conf "deploy" "build" 0)
+	dwbuild=${day}_${rev}_${bn}
     
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
-    
+	
 	if [ $requiresClientCertificate == true ]; then
         echo
         echo "Uploading with certificate authentication..."

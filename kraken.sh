@@ -5,6 +5,14 @@ deploydir="$(cd "$(dirname "$0")" && pwd)"
 #	cd ..
 #fi
 
+if [ "$2" == "!" ]; then
+	ReleaseTheKraken=true;
+else
+	ReleaseTheKraken=false;
+fi
+
+
+
 if [ ! -d ${deploydir}/working ]; then
 	mkdir ${deploydir}/working
 fi
@@ -55,21 +63,22 @@ echo
 
 case "$1" in
         deploy)
+			scp_configure
 			scp_verify_login
 			scp_checkout			
 			dw_configure
-            build_number
+            inc_build_number
 			minify			
 			zip_cartridges
 			dw_upload_build
 			scp_tag
-			echo
 			echo "Cartridges uploaded to $dwbuild."
             ;;                     
         build)			
+			scp_configure
 			scp_verify_login
 			scp_checkout			
-            build_number
+            inc_build_number
 			minify
 			zip_cartridges	
 			scp_tag
@@ -77,9 +86,9 @@ case "$1" in
 			echo "Cartridge archive created."
             ;;         
         update)
+			scp_configure
             scp_verify_login
 			scp_checkout            
-			echo
 			echo "Updated cartridges."
             ;;
         cert)
@@ -93,8 +102,9 @@ case "$1" in
 			echo
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
-		test)		
-			css_minify
+		test)
+			echo $(scp_revision)
+
 			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"

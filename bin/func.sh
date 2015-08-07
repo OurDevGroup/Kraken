@@ -1,5 +1,6 @@
-build_number() {
-	build=$(($build + 1))
+inc_build_number() {
+	local bn=$(read_conf "deploy" "build" 0)
+	build=$(($bn + 1))
 	write_conf "deploy" "build" $build
 }
 
@@ -14,7 +15,7 @@ zip_cartridges() {
 			echo
 			echo "${cartridge}"
 			if [ -d "$(echo $cartridge | tr -d '\r')" ]; then
-				zip -r $zipfile $(echo $cartridge | tr -d '\r') -x "*$(scp_exclude)*" -x "*.DS_Store"
+				zip -r $zipfile $(echo $cartridge | tr -d '\r') -x "*$(scp_exclude "$cartridge")*" -x "*.DS_Store"
 			fi
 		done		
 }
