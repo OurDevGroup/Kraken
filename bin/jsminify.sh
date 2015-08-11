@@ -1,18 +1,10 @@
 js_minify() {
 	echo	
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
-	local minifyJS=$(read_conf $demandwareServer "minifyJS" "N")
-	
-	if [ "${minifyJS^^}" == "Y" ]; then
-		read -n 1 -p "Would you like to minify all Javascript files [Y/n]? " t_minifyJS
-	else
-		read -n 1 -p "Would you like to minify all Javascript files [y/N]? " t_minifyJS
-	fi
-	minifyJS=${t_minifyJS:-${minifyJS^^}}	
-	
-	write_conf $demandwareServer "minifyJS" ${minifyJS^^}
+	local minifyJS=$(prompt $demandwareServer "minifyJS" $bool false "Would you like to minify all Javascript files" true "" true)
+	echo
 		
-	if [[ "${minifyJS^^}" == "Y" ]]; then
+	if [ $minifyJS == true ]; then
 		if ! gem spec uglifier > /dev/null 2>&1; then	
 			echo
 			local installMinify="N"
@@ -25,9 +17,9 @@ js_minify() {
 				exit 1
 			fi
 		fi
-		
-		echo
+
 		echo "Minifying .js files."
+		echo
 		
 		for cartridge in "${cartridges[@]}"; do				
 			echo

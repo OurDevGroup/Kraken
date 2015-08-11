@@ -4,17 +4,21 @@ source ${deploydir}/bin/git.sh
 scp_verify_login() {
 	if [ ! $scpVerified ]; then
 		local provider=$(read_conf "scp" "provider" "")
-		echo
+
 		if [ "$provider" == "multi" ]; then
 			for cartridge in "${cartridges[@]}"; do	
 				local cartProvider=$(read_conf "scp" "provider.$cartridge")
 				if [ "${cartProvider^^}" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
+				elif [ "${provider^^}" == "GIT" ]; then					
+					git_verify_login "$cartridge"
 				fi
 			done					
 		else
 			if [ "${provider^^}" == "SVN" ]; then
 				svn_verify_login  
+			elif [ "${provider^^}" == "GIT" ]; then
+				git_verify_login
 			fi
 		fi		
 	fi
@@ -27,7 +31,9 @@ scp_checkout () {
 			local cartProvider=$(read_conf "scp" "provider.$cartridge")
 			echo "${cartridge}"
 			if [ "${cartProvider^^}" == "SVN" ]; then
-				svn_checkout "$cartridge" 
+				svn_checkout "$cartridge"
+			elif [ "${provider^^}" == "GIT" ]; then
+				git_checkout "$cartridge"
 			fi
 		done					
 	else
@@ -36,6 +42,8 @@ scp_checkout () {
 			echo "${cartridge}"
 			if [ "${provider^^}" == "SVN" ]; then			
 				svn_checkout "$cartridge" 
+			elif [ "${provider^^}" == "GIT" ]; then
+				git_checkout "$cartridge"
 			fi
 		done
 	fi
@@ -73,6 +81,8 @@ scp_configure() {
 				echo		
 				if [ "${provider^^}" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
+				elif [ "${provider^^}" == "GIT" ]; then
+					git_verify_login "$cartridge"
 				fi
 			done					
 		else
@@ -80,6 +90,8 @@ scp_configure() {
 			echo
 			if [ "${provider^^}" == "SVN" ]; then			
 				svn_verify_login 
+			elif [ "${provider^^}" == "GIT" ]; then
+				git_verify_login
 			fi
 		fi				
 	fi	

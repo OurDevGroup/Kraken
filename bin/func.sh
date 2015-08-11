@@ -4,26 +4,25 @@ inc_build_number() {
 	write_conf "deploy" "build" $build
 }
 
-zip_cartridges() {
-		echo
+zip_cartridges() {		
 		echo "Compressing the cartridges for upload ..."
+		echo
 		
 		zipfile="build.zip"		
 		cd "$homedir"
 		
 		rm -f build.zip
         
-		for cartridge in "${cartridges[@]}"; do					
-			echo
+		for cartridge in "${cartridges[@]}"; do								
 			echo "${cartridge}"
 			if [ -d "$(echo $cartridge | tr -d '\r')" ]; then
 				zip -r $zipfile $(echo $cartridge | tr -d '\r') -x "*$(scp_exclude "$cartridge")*" -x "*.DS_Store"
 			fi
+			echo
 		done		
 }
 
 make_clientcert() {
-	echo
 	if [ ! -d "${deploydir}/certs" ]; then
 		mkdir "${deploydir}/certs"
 		echo "You need to request a server certificate and password from Demandware and put it in the certs directory!"
@@ -33,87 +32,24 @@ make_clientcert() {
 	fi
 		
 	echo
-    local srvcertprovided=false
-    while ! $srvcertprovided; do	
-		if [ "${demandwareCertificateSRL}" != "" ]; then
-			read -p "Please enter the name of the server certificate SRL [$demandwareCertificateSRL]: " newdwcert
-		else
-			read -p "Please enter the name of the server certificate SRL: " newdwcert
-		fi		
-		demandwareCertificateSRL=${newdwcert:-$demandwareCertificateSRL}
-		
-		if [ "${demandwareCertificateCRT}" != "" ]; then
-			read -p "Please enter the name of the server certificate CRT [$demandwareCertificateCRT]: " newdwcert
-		else
-			read -p "Please enter the name of the server certificate CRT: " newdwcert
-		fi		
-		demandwareCertificateCRT=${newdwcert:-$demandwareCertificateCRT}	
+	
+	demandwareCertificateSRL=$(prompt "deploy" "demandwareCertificateSRL" $string "" "Please enter the name of the server certificate SRL" true "" true)
+	echo
+	
+	demandwareCertificateCRT=$(prompt "deploy" "demandwareCertificateCRT" $string "" "Please enter the name of the server certificate CRT" true "" true)
+	echo
+	
+	demandwareCertificateKEY=$(prompt "deploy" "demandwareCertificateKEY" $string "" "Please enter the name of the server certificate KEY" true "" true)
+	echo
+	
+	demandwareCertificatePassword=$(secure_prompt "deploy" "demandwareCertificatePassword" $string "" "Please enter the password for the server certificate" true "$demandwareCertificateSRL" true)
+	echo
 
-		if [ "${demandwareCertificateKEY}" != "" ]; then
-			read -p "Please enter the name of the server certificate KEY [$demandwareCertificateKEY]: " newdwcert
-		else
-			read -p "Please enter the name of the server certificate KEY: " newdwcert
-		fi		
-		demandwareCertificateKEY=${newdwcert:-$demandwareCertificateKEY}		
-		
-		if [ "$newdwcert" != "" ] || [ "$demandwareCertificatePassword" == "" ]; then
-			demandwareCertificatePassword=""
-		fi		
-
-		if [ "$demandwareCertificateSRL" == "" ] || [ "$demandwareCertificateCRT" == "" ] || [ "$demandwareCertificateKEY" == "" ]; then
-            echo "Demandware certificate names cannot be empty!"
-        else
-            srvcertprovided=true
-            echo
-        fi
-    done	
-	
+	clientCertificate=$(prompt $demandwareServer "clientCertificate" $string "" "Please enter the client certificate name" true "" true)
 	echo
-    local srvpassprovided=false
-    while ! $srvpassprovided; do	
-		if [ "${demandwareCertificatePassword}" != "" ]; then
-			read -p "Please enter the password for the server certificate [stored password]: " -s newdwcertpass
-		else
-			read -p "Please enter the password for the server certificate: " -s newdwcertpass
-		fi
-		
-		demandwareCertificatePassword=${newdwcertpass:-$demandwareCertificatePassword}
-        
-		if [ "$demandwareCertificateSRL" == "" ]; then
-            echo "Demandware certificate name cannot be empty!"
-        else
-            srvpassprovided=true
-            echo
-        fi
-    done	
 	
+	clientCertificatePassword=$(prompt $demandwareServer "clientCertificatePassword" $string "" "Please enter the client certificate name" true "$clientCertificate" true)
 	echo
-    local clientcertprovided=false
-    while ! $clientcertprovided; do	
-		read -p "Please enter the client certificate name [build]: " clientCertificate
-		
-		clientCertificate=${clientCertificate:-"build"}
-        
-		if [ "$clientCertificate" == "" ]; then
-            echo "Client certificate name cannot be empty!"
-        else
-            clientcertprovided=true
-            echo
-        fi
-    done	
-	
-	echo
-    local clientcertpassprovided=false
-    while ! $clientcertpassprovided; do	
-		read -p "Please enter the client certificate password: " -s clientCertificatePassword
-		
-		if [ "$clientCertificatePassword" == "" ]; then
-            echo "Client certificate password cannot be empty!"
-        else
-            clientcertpassprovided=true
-            echo
-        fi
-    done
 	
 	openssl req -new -newkey rsa:512 -nodes -out ${deploydir}/certs/$clientCertificate.req -keyout ${deploydir}/certs/$clientCertificate.key -subj "$certSubj" -passout "pass:$clientCertificatePassword"		
 	openssl x509 -CA ${deploydir}/certs/$demandwareCertificateCRT -CAkey ${deploydir}/certs/$demandwareCertificateKEY -CAserial ${deploydir}/certs/$demandwareCertificateSRL -req -in ${deploydir}/certs/$clientCertificate.req -out ${deploydir}/certs/$clientCertificate.pem -days 360 -passin "pass:$demandwareCertificatePassword"

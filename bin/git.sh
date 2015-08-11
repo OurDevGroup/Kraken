@@ -20,14 +20,22 @@ git_repo_md5() {
 git_get_repo() {
 	if [ "$1" == "" ]; then
 		gitrepo=$(prompt "git" "repo" $string "" "Please enter your Git repo URL (.git)" true)
-		gitpath=$(prompt "git" "repo" $string "" "Please enter your Git repo catridge path" true)
+		echo
+		gitpath=$(prompt "git" "path" $string "" "Please enter your Git repo catridge path" true)
+		echo
+		gitbranch=$(prompt "git" "branch" $string "master" "Please enter your Git repo branch" true)
+		echo
 	else
 		baserepo=$(read_conf "git" "baserepo")
 		
 		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
 		gitrepo=$(prompt "git" "provider.$1.repo" $string "$baserepo$cartridge" "Please enter your Git repo URL${a} (.git)" true)
+		echo
 		gitpath=$(prompt "git" "provider.$1.path" $string "$baserepo$cartridge" "Please enter your Git repo path${a}" true)
-				
+		echo
+		gitbranch=$(prompt "git" "provider.$1.branch" $string "master" "Please enter your Git repo branch${a}" true)
+		echo
+		
 		if [[ "$1" != "" && "$gitrepo" == *$cartridge ]]; then
 			local l=$[${#gitrepo} - ${#cartridge}]
 			local baserepo=${gitrepo:0:$l}
@@ -37,66 +45,58 @@ git_get_repo() {
 	echo
 }
 
-git_login() {
-	git_get_repo "$1"	
-
-	local repomd5=$(git_repo_md5)
-	
-	gituser=$(prompt "git" "$repomd5.user" $string "" "Please enter your Git username" true)
-	echo
-	
-	gitpassword=$(secure_prompt "git" "$repomd5.pass" $string "" "Please enter your Git password" true $gituser)
-	echo
-}
-
 git_verify_login() {
-    git_login "$1"
-	
-	local repomd5=$(git_repo_md5)
-	local isAuthed=$(eval "echo \$${repomd5}")
-	
-	if [ ! $isAuthed ]; then
-		out=$(svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive)
-		
-		if [ "${svnout}" == "" ]; then
-			echo "SVN Auth Failed!"
-			exit
-		else		
-			echo
-			echo "SVN Authenticated."
-			local repomd5=$(svn_repo_md5)
-			eval "${repomd5}=true"
-		fi
-	fi
-	echo
+	git config --global credential.helper cache
 }
 
 git_revision() {
-	local svnrev=`svn info $svnrepo --username $svnuser --password $svnpassword --non-interactive | grep '^Revision:' | sed -e 's/^Revision: //'`
-	echo "$svnrev"
+	local provider=$(read_conf "scp" "provider" "")
+
+	if [ "$provider" == "multi" ]; then
+		local svnrepo=$(read_conf "git" "provider.$1.repo")	
+		local cartdir="${homedir}/$1"
+		cd "$cartdir"		
+	else
+		local svnrepo=$(read_conf "git" "repo")
+	fi
+
+	local gitrev=`git log --pretty=format:'%h' -n 1`
+	
+	cd ${homedir}
+	echo "$gitrev"
 }
 
 git_checkout() {
-	local gituser=$(read_conf "git" "gituser")
-	local gitpassword=$(read_conf_enc "git" "gitpassword" $gituser)	
 	local cartdir="${homedir}/$1"
 	
 	if [ -d "$cartdir" ]; then
 		cd "$cartdir"
-		svn revert -R .
-		svn cleanup
-		svn update --username $svnuser --password $svnpassword --force
+		
+		git checkout .
+		git reset
+		git revert ...
+		git clean -f 
+		git clean -d	
+		
+		if [ "$provider" == "multi" ]; then
+			local branch=$(read_conf "git" "provider.$1.branch")			
+		else
+			local branch=$(read_conf "git" "branch")
+		fi
+		
+		git pull $branch
 	else 		
 		local provider=$(read_conf "scp" "provider" "")
 
 		if [ "$provider" == "multi" ]; then
-			local cartrepo=$(read_conf "svn" "provider.$1.repo")			
+			local cartrepo=$(read_conf "git" "provider.$1.repo")			
 		else
-			local cartrepo=$(read_conf "svn" "repo")
+			local cartrepo=$(read_conf "git" "repo")
 		fi
 		
 		cd ${homedir}
-		svn checkout $(echo $cartrepo | tr -d '\r') $(echo ${cartridge} | tr -d '\r') --username $svnuser --password $svnpassword
+		
+		git clone cartrepo	
 	fi
 	cd "${homedir}"
 	echo

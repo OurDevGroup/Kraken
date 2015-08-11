@@ -20,7 +20,7 @@ dw_configure() {
 	demandwarePassword=$(secure_prompt $demandwareServer "demandwarePassword" $string "" "Please enter the password for $demandwareServer" true "$demandwareUsername" true)	
 	echo
 	
-	requiresClientCertificate=$(prompt $demandwareServer "requiresClientCertificate" $bool "" "Does the server require a client certificate" true "" true)
+	requiresClientCertificate=$(prompt $demandwareServer "requiresClientCertificate" $bool false "Does the server require a client certificate" true "" true)
 	echo
 		
 	local genCert=false
