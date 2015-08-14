@@ -22,15 +22,16 @@ css_minify() {
 		
 		for cartridge in "${cartridges[@]}"; do	
 			echo		
-			cd ${homedir}/${cartridge}
+			local cartPath=$(scp_cartridge_path "$cartridge")
+			cd ${homedir}/${cartPath}
 			echo ${cartridge}
 				
-			if [ -d ${homedir}/${cartridge}/cartridge/static ]; then				
+			if [ -d ${homedir}/${cartPath}/cartridge/static ]; then				
 				
 				file_list=()
 				while IFS= read -d $'\0' -r file; do
 					file_list=("${file_list[@]}" "$file")
-				done < <(find "${homedir}/${cartridge}/cartridge/static" -name "*.css" ! -name '*.min.css' -print0)
+				done < <(find "${homedir}/${cartPath}/cartridge/static" -name "*.css" ! -name '*.min.css' -print0)
 				
 				cd ${deploydir}/bin
 				for file in "${file_list[@]}" ; do

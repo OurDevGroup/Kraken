@@ -88,7 +88,7 @@ prompt() {
 		fi
 				
 		if [ $ReleaseTheKraken == true ] && [ "$existingVal" != "" ]; then
-			echo "test"
+			echo "$existingVal"
 			return
 		fi
 	else

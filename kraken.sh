@@ -103,8 +103,7 @@ case "$1" in
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
 		test)
-			echo $(scp_revision)
-
+			zip_cartridges
 			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"

@@ -5,21 +5,21 @@ inc_build_number() {
 }
 
 zip_cartridges() {		
-		echo "Compressing the cartridges for upload ..."
+	echo "Compressing the cartridges for upload ..."
+	echo
+	
+	zipfile="build.zip"		
+	cd "$homedir"
+	rm -f build.zip
+	
+	for cartridge in "${cartridges[@]}"; do								
+		echo "${cartridge}"
+		local cartPath=$(scp_cartridge_path "$cartridge")
+		if [ -d "$(echo $cartPath | tr -d '\r')" ]; then
+			zip -r $zipfile $(echo $cartPath | tr -d '\r') -x "*$(scp_exclude "$cartridge")*" -x "*.DS_Store"
+		fi
 		echo
-		
-		zipfile="build.zip"		
-		cd "$homedir"
-		
-		rm -f build.zip
-        
-		for cartridge in "${cartridges[@]}"; do								
-			echo "${cartridge}"
-			if [ -d "$(echo $cartridge | tr -d '\r')" ]; then
-				zip -r $zipfile $(echo $cartridge | tr -d '\r') -x "*$(scp_exclude "$cartridge")*" -x "*.DS_Store"
-			fi
-			echo
-		done		
+	done		
 }
 
 make_clientcert() {

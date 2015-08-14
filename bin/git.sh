@@ -25,13 +25,13 @@ git_get_repo() {
 		echo
 		gitbranch=$(prompt "git" "branch" $string "master" "Please enter your Git repo branch" true)
 		echo
-	else
+	else		
 		baserepo=$(read_conf "git" "baserepo")
 		
 		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
-		gitrepo=$(prompt "git" "provider.$1.repo" $string "$baserepo$cartridge" "Please enter your Git repo URL${a} (.git)" true)
+		gitrepo=$(prompt "git" "provider.$1.repo" $string "$baserepo" "Please enter your Git repo URL${a} (.git)" true)
 		echo
-		gitpath=$(prompt "git" "provider.$1.path" $string "$baserepo$cartridge" "Please enter your Git repo path${a}" true)
+		gitpath=$(prompt "git" "provider.$1.path" $string "$gitpath" "Please enter your Git repo path${a}" true)
 		echo
 		gitbranch=$(prompt "git" "provider.$1.branch" $string "master" "Please enter your Git repo branch${a}" true)
 		echo
@@ -46,6 +46,7 @@ git_get_repo() {
 }
 
 git_verify_login() {
+	git_get_repo $1
 	git config --global credential.helper cache
 }
 
@@ -67,36 +68,49 @@ git_revision() {
 }
 
 git_checkout() {
-	local cartdir="${homedir}/$1"
+	local cartpath=$(scp_cartridge_path $1)
+	local cartdir="${homedir}/$cartpath"
 	
 	if [ -d "$cartdir" ]; then
 		cd "$cartdir"
-		
-		git checkout .
-		git reset
-		git revert ...
-		git clean -f 
-		git clean -d	
-		
-		if [ "$provider" == "multi" ]; then
-			local branch=$(read_conf "git" "provider.$1.branch")			
-		else
-			local branch=$(read_conf "git" "branch")
-		fi
-		
-		git pull $branch
+		local repomd5=$(git_repo_md5 $1)
+		local isCloned=$(eval "echo \$${repomd5}")
+		if [ "$isCloned" != "true" ]; then
+			git checkout .
+			git reset
+			git revert ...
+			git clean -f 
+			git clean -d -f	
+			
+			if [ "$provider" == "multi" ]; then
+				local branch=$(read_conf "git" "provider.$1.branch")
+			else
+				local branch=$(read_conf "git" "branch")
+			fi
+
+			git pull origin $branch
+			eval "${repomd5}=true"
+		fi			
 	else 		
 		local provider=$(read_conf "scp" "provider" "")
 
 		if [ "$provider" == "multi" ]; then
-			local cartrepo=$(read_conf "git" "provider.$1.repo")			
+			local cartrepo=$(read_conf "git" "provider.$1.repo")	
+			local branch=$(read_conf "git" "provider.$1.branch")			
 		else
 			local cartrepo=$(read_conf "git" "repo")
+			local branch=$(read_conf "git" "branch")
 		fi
 		
 		cd ${homedir}
 		
-		git clone cartrepo	
+		local repomd5=$(git_repo_md5 $1)		
+		local isCloned=$(eval "echo \$${repomd5}")
+		if [ "$isCloned" != "true" ]; then
+			git clone $cartrepo				
+			git checkout $branch
+			eval "${repomd5}=true"
+		fi		
 	fi
 	cd "${homedir}"
 	echo

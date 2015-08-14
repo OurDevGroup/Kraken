@@ -10,7 +10,7 @@ scp_verify_login() {
 				local cartProvider=$(read_conf "scp" "provider.$cartridge")
 				if [ "${cartProvider^^}" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
-				elif [ "${provider^^}" == "GIT" ]; then					
+				elif [ "${cartProvider^^}" == "GIT" ]; then					
 					git_verify_login "$cartridge"
 				fi
 			done					
@@ -32,7 +32,7 @@ scp_checkout () {
 			echo "${cartridge}"
 			if [ "${cartProvider^^}" == "SVN" ]; then
 				svn_checkout "$cartridge"
-			elif [ "${provider^^}" == "GIT" ]; then
+			elif [ "${cartProvider^^}" == "GIT" ]; then
 				git_checkout "$cartridge"
 			fi
 		done					
@@ -126,10 +126,48 @@ scp_exclude() {
 		local cartProvider=$(read_conf "scp" "provider.$cartridge")
 		if [ "${cartProvider^^}" == "SVN" ]; then
 			echo $(svn_exclude)
-		fi		
+		elif [ "${cartProvider^^}" == "GIT" ]; then
+			echo $(git_exclude)
+		fi	
 	else
 		if [ "${provider^^}" == "SVN" ]; then			
 			echo $(svn_exclude)
+		elif [ "${provider^^}" == "GIT" ]; then
+			echo $(git_exclude)
+		fi	
+	fi
+}
+
+scp_cartridge_path() {
+	local provider=$(read_conf "scp" "provider" "")
+	if [ "$provider" == "multi" ]; then
+		local cartProvider=$(read_conf "scp" "provider.$1")
+		if [ "${cartProvider^^}" == "SVN" ]; then
+			echo $1
+		elif [ "${cartProvider^^}" == "GIT" ]; then
+			gitRepo=$(read_conf "git" "provider.$1.repo")
+			gitFile=$(echo "$gitRepo" | rev | cut -d"/" -f1 | rev)
+			repoDir=$(echo "$gitFile" | cut -d"." -f1)
+			cartPath=$(read_conf "git" "provider.$1.path")
+			if [ "$cartPath" == "" ]; then
+				echo "$repoDir/$1"
+			else
+				echo "$repoDir/$cartPath/$1"
+			fi	
+		fi
+	else
+		if [ "${provider^^}" == "SVN" ]; then			
+			echo $1
+		elif [ "${provider^^}" == "GIT" ]; then
+			gitRepo=$(read_conf "git" "repo")
+			gitFile=$(echo "$gitRepo" | rev | cut -d"/" -f1 | rev)
+			repoDir=$(echo "$gitFile" | cut -d"." -f1)
+			cartPath=$(read_conf "git" "path")
+			if [ "$cartPath" == "" ]; then
+				echo "$repoDir/$1"
+			else
+				echo "$repoDir/$cartPath/$1"
+			fi
 		fi
 	fi
 }
