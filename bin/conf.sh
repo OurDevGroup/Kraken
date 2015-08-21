@@ -144,7 +144,7 @@ prompt() {
 		if [[ "$3" == "string" && "$existingVal" != "" ]]; then
 			newval=${newval:-$existingVal}
 		elif [ "$3" == "bool" ]; then			
-			if [ "${yn_newval^^}" == "Y" ]; then	
+			if [ "$(upper "$yn_newval")" == "Y" ]; then	
 				newval=true
 			else
 				newval=false
