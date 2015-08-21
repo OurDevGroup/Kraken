@@ -11,7 +11,7 @@ git_repo_md5() {
 		fi
 	fi
 	
-	repomd5=$(echo -n $baserepo | md5sum | cut -d ' ' -f 1)
+	repomd5=$(echo -n $(_md5 "$baserepo") | cut -d ' ' -f 1)
 	echo $repomd5
 	
 	return

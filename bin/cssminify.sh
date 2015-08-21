@@ -3,16 +3,16 @@ css_minify() {
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)	
 	local minifyCSS=$(read_conf $demandwareServer "minifyCSS" "N")
 	
-	if [ "${minifyCSS^^}" == "Y" ]; then
+	if [ "$(upper $minifyCSS)" == "Y" ]; then
 		read -n 1 -p "Would you like to minify all .css files [Y/n]? " t_minifyCSS
 	else
 		read -n 1 -p "Would you like to minify all .css files [y/N]? " t_minifyCSS
 	fi
-	minifyCSS=${t_minifyCSS:-${minifyCSS^^}}
+	minifyCSS=${t_minifyCSS:-"$(upper $minifyCSS)"}
 	
-	write_conf $demandwareServer "minifyCSS" ${minifyCSS^^}
+	write_conf $demandwareServer "minifyCSS" $(upper "$minifyCSS")
 	
-	if [[ "${minifyCSS^^}" == "Y" ]]; then	
+	if [[ "$(upper $minifyCSS)" == "Y" ]]; then	
 		if ! gem spec cssminify > /dev/null 2>&1; then	
 			echo
 			local installMinify="N"
@@ -20,7 +20,7 @@ css_minify() {
 			installMinify=${installMinify:-"Y"}	
 					
 			if [[ "$installMinify" == "y" || "$installMinify" == "Y" ]]; then	
-				gem install cssminify
+				sudo gem install cssminify
 			else 
 				exit 1
 			fi
@@ -29,8 +29,10 @@ css_minify() {
 		echo
 		echo "Minifying .css files."
 		
+        cd ${homedir}
+        
 		for cartridge in "${cartridges[@]}"; do	
-			echo		
+            echo
 			cd ${homedir}/${cartridge}
 			echo ${cartridge}
 				
@@ -59,7 +61,8 @@ css_minify() {
 					fi
 
 				done
-			
+			else
+            echo "bad"
 			fi
 
 		done		

@@ -11,7 +11,7 @@ svn_repo_md5() {
 		fi
 	fi	
 	
-	repomd5=$(echo -n $baserepo | md5sum | cut -d ' ' -f 1)
+	repomd5=$(echo -n $(_md5 "$baserepo") | cut -d ' ' -f 1)
 	echo $repomd5
 	
 	return
@@ -90,12 +90,14 @@ svn_checkout() {
 	local provider=$(read_conf "scp" "provider" "")
 
 	if [ "$provider" == "multi" ]; then
-		local cartrepo=$(read_conf "svn" "provider.$1.repo")			
+		local cartrepo=$(read_conf "svn" "provider.$1.repo")	
+        local repomd5=$(svn_repo_md5 $1)
 	else
 		local cartrepo=$(read_conf "svn" "repo")
+        cartrepo=$(echo $cartrepo/$cartridge);
+        local repomd5=$(svn_repo_md5)
 	fi
-
-	local repomd5=$(svn_repo_md5)
+	
 	local svnuser=$(read_conf "svn" "$repomd5.user")
 	local svnpassword=$(read_conf_enc "svn" "$repomd5.pass" $svnuser)	
 	
@@ -107,7 +109,7 @@ svn_checkout() {
 		svn revert -R .		
 		svn update --username $svnuser --password $svnpassword --force
 	else 		
-		cd ${homedir}
+		cd ${homedir}        
 		svn checkout $(echo $cartrepo | tr -d '\r') $(echo ${cartridge} | tr -d '\r') --username $svnuser --password $svnpassword
 	fi
 	cd "${homedir}"

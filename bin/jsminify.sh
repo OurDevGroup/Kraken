@@ -3,16 +3,16 @@ js_minify() {
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	local minifyJS=$(read_conf $demandwareServer "minifyJS" "N")
 	
-	if [ "${minifyJS^^}" == "Y" ]; then
+	if [ "$(upper $minifyJS)" == "Y" ]; then
 		read -n 1 -p "Would you like to minify all Javascript files [Y/n]? " t_minifyJS
 	else
 		read -n 1 -p "Would you like to minify all Javascript files [y/N]? " t_minifyJS
 	fi
-	minifyJS=${t_minifyJS:-${minifyJS^^}}	
+	minifyJS=${t_minifyJS:-$(upper $minifyJS)}	
 	
-	write_conf $demandwareServer "minifyJS" ${minifyJS^^}
+	write_conf $demandwareServer "minifyJS" $(upper $minifyJS)
 		
-	if [[ "${minifyJS^^}" == "Y" ]]; then
+	if [[ "$(upper $minifyJS)" == "Y" ]]; then
 		if ! gem spec uglifier > /dev/null 2>&1; then	
 			echo
 			local installMinify="N"
@@ -20,7 +20,7 @@ js_minify() {
 			installMinify=${installMinify:-"Y"}	
 					
 			if [[ "$installMinify" == "y" || "$installMinify" == "Y" ]]; then	
-				gem install uglifier
+				sudo gem install uglifier
 			else 
 				exit 1
 			fi

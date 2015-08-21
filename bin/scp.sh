@@ -8,12 +8,12 @@ scp_verify_login() {
 		if [ "$provider" == "multi" ]; then
 			for cartridge in "${cartridges[@]}"; do	
 				local cartProvider=$(read_conf "scp" "provider.$cartridge")
-				if [ "${cartProvider^^}" == "SVN" ]; then
+				if [ "$(upper "$cartProvider")" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
 				fi
 			done					
 		else
-			if [ "${provider^^}" == "SVN" ]; then
+			if [ "$(upper "$provider")" == "SVN" ]; then
 				svn_verify_login  
 			fi
 		fi		
@@ -26,7 +26,7 @@ scp_checkout () {
 		for cartridge in "${cartridges[@]}"; do	
 			local cartProvider=$(read_conf "scp" "provider.$cartridge")
 			echo "${cartridge}"
-			if [ "${cartProvider^^}" == "SVN" ]; then
+			if [ "$(upper "$cartProvider")" == "SVN" ]; then
 				svn_checkout "$cartridge" 
 			fi
 		done					
@@ -34,7 +34,7 @@ scp_checkout () {
 		for cartridge in "${cartridges[@]}"; do		
 			echo
 			echo "${cartridge}"
-			if [ "${provider^^}" == "SVN" ]; then			
+			if [ "$(upper "$provider")" == "SVN" ]; then			
 				svn_checkout "$cartridge" 
 			fi
 		done
@@ -43,7 +43,7 @@ scp_checkout () {
 
 scp_tag() {
 	local provider=$(read_conf "scp" "provider" "svn")
-	if [ "$provider^^" == "SVN" ]; then
+	if [ "$(upper "$provider")" == "SVN" ]; then
 		svn_tag
 	fi
 }
@@ -71,14 +71,14 @@ scp_configure() {
 			for cartridge in "${cartridges[@]}"; do					
 				local provider=$(prompt "scp" "provider.$cartridge" $string "svn" "What source control provider do you use for $cartridge (svn/git)" true)
 				echo		
-				if [ "${provider^^}" == "SVN" ]; then
+				if [ "$(upper "$provider")" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
 				fi
 			done					
 		else
 			local provider=$(prompt "scp" "provider" $string "svn" "What source control provider do you use (svn/git)" true)
 			echo
-			if [ "${provider^^}" == "SVN" ]; then			
+			if [ "$(upper "$provider")" == "SVN" ]; then			
 				svn_verify_login 
 			fi
 		fi				
@@ -94,11 +94,11 @@ scp_revision() {
 			local cartridge=${cartridges[0]}
 		fi		
 		local cartProvider=$(read_conf "scp" "provider.$cartridge")		
-		if [ "${cartProvider^^}" == "SVN" ]; then
+		if [ "$(upper "$cartProvider")" == "SVN" ]; then
 			echo $(svn_revision $cartridge)
 		fi		
 	else
-		if [ "${provider^^}" == "SVN" ]; then			
+		if [ "$(upper "$provider")" == "SVN" ]; then			
 			echo $(svn_revision)
 		fi
 	fi
@@ -112,11 +112,11 @@ scp_exclude() {
 			local cartridge=${cartridges[0]}
 		fi
 		local cartProvider=$(read_conf "scp" "provider.$cartridge")
-		if [ "${cartProvider^^}" == "SVN" ]; then
+		if [ "$(upper "$cartProvider")" == "SVN" ]; then
 			echo $(svn_exclude)
 		fi		
 	else
-		if [ "${provider^^}" == "SVN" ]; then			
+		if [ "$(upper "$provider")" == "SVN" ]; then			
 			echo $(svn_exclude)
 		fi
 	fi

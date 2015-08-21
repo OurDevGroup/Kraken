@@ -1,3 +1,23 @@
+upper() {
+    echo $1 | tr "[a-z]" "[A-Z]"
+}
+
+downer() {
+    echo $1 | tr "[A-Z]" "[a-z]"
+}
+
+_md5() { 
+  md5=$(echo builtin command -v md5);
+  md5sum=$(builtin command -v md5sum);
+  if [ "$md5" > /dev/null ]; then
+    echo "$1" | md5
+  elif [ "$md5sum" > /dev/null ]; then
+    echo "$1" | md5sum | awk '{print $1}'
+  else
+    echo "$1"
+  fi   
+}
+
 inc_build_number() {
 	local bn=$(read_conf "deploy" "build" 0)
 	build=$(($bn + 1))
