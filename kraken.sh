@@ -33,9 +33,11 @@ homedir=${deploydir}/working
 
 
 if [ "$(uname -s)" == "Cygwin" ]; then
-	iscygwin=true
+	os="cygwin"
+elif ["$(uname -s)" == "Darwin" ]; then
+	os="osx"
 else
-	iscygwin=false
+	os="nix"
 fi
 
 source ${deploydir}/bin/conf.sh
@@ -54,7 +56,7 @@ if [[ ! -e ${deploydir}/conf/cartridges.conf || ! -s ${deploydir}/conf/cartridge
     exit 1 
 fi
 
-IFS=$'\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
+IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
 
 printf "\033c"
 kraken
@@ -103,7 +105,7 @@ case "$1" in
 			echo "Cartridges uploaded to $dwbuild."			
 			;;
 		test)
-			zip_cartridges
+			make_clientcert
 			;;
         *)
             echo $"Usage: $0 {deploy|build|update|cert|upload}"

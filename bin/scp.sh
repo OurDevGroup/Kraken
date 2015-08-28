@@ -8,16 +8,16 @@ scp_verify_login() {
 		if [ "$provider" == "multi" ]; then
 			for cartridge in "${cartridges[@]}"; do	
 				local cartProvider=$(read_conf "scp" "provider.$cartridge")
-				if [ "${cartProvider^^}" == "SVN" ]; then
+				if [ "$(upper $cartProvider)" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
-				elif [ "${cartProvider^^}" == "GIT" ]; then					
+				elif [ "$(upper $cartProvider)" == "GIT" ]; then					
 					git_verify_login "$cartridge"
 				fi
 			done					
 		else
-			if [ "${provider^^}" == "SVN" ]; then
+			if [ "$(upper $provider)" == "SVN" ]; then
 				svn_verify_login  
-			elif [ "${provider^^}" == "GIT" ]; then
+			elif [ "$(upper $provider)" == "GIT" ]; then
 				git_verify_login
 			fi
 		fi		
@@ -30,9 +30,9 @@ scp_checkout () {
 		for cartridge in "${cartridges[@]}"; do	
 			local cartProvider=$(read_conf "scp" "provider.$cartridge")
 			echo "${cartridge}"
-			if [ "${cartProvider^^}" == "SVN" ]; then
+			if [ "$(upper $cartProvider)" == "SVN" ]; then
 				svn_checkout "$cartridge"
-			elif [ "${cartProvider^^}" == "GIT" ]; then
+			elif [ "$(upper $cartProvider)" == "GIT" ]; then
 				git_checkout "$cartridge"
 			fi
 		done					
@@ -40,9 +40,9 @@ scp_checkout () {
 		for cartridge in "${cartridges[@]}"; do		
 			echo
 			echo "${cartridge}"
-			if [ "${provider^^}" == "SVN" ]; then			
+			if [ "$(upper $provider)" == "SVN" ]; then			
 				svn_checkout "$cartridge" 
-			elif [ "${provider^^}" == "GIT" ]; then
+			elif [ "$(upper $provider)" == "GIT" ]; then
 				git_checkout "$cartridge"
 			fi
 		done
@@ -79,18 +79,18 @@ scp_configure() {
 			for cartridge in "${cartridges[@]}"; do					
 				local provider=$(prompt "scp" "provider.$cartridge" $string "svn" "What source control provider do you use for $cartridge (svn/git)" true)
 				echo		
-				if [ "${provider^^}" == "SVN" ]; then
+				if [ "$(upper $provider)" == "SVN" ]; then
 					svn_verify_login "$cartridge" 
-				elif [ "${provider^^}" == "GIT" ]; then
+				elif [ "$(upper $provider)" == "GIT" ]; then
 					git_verify_login "$cartridge"
 				fi
 			done					
 		else
 			local provider=$(prompt "scp" "provider" $string "svn" "What source control provider do you use (svn/git)" true)
-			echo
-			if [ "${provider^^}" == "SVN" ]; then			
+			echo 
+			if [ "$(upper $provider)" == "SVN" ]; then			
 				svn_verify_login 
-			elif [ "${provider^^}" == "GIT" ]; then
+			elif [ "$(upper $provider)" == "GIT" ]; then
 				git_verify_login
 			fi
 		fi				
@@ -106,11 +106,11 @@ scp_revision() {
 			local cartridge=${cartridges[0]}
 		fi		
 		local cartProvider=$(read_conf "scp" "provider.$cartridge")		
-		if [ "${cartProvider^^}" == "SVN" ]; then
+		if [ "$(upper $cartProvider)" == "SVN" ]; then
 			echo $(svn_revision $cartridge)
 		fi		
 	else
-		if [ "${provider^^}" == "SVN" ]; then			
+		if [ "$(upper $provider)" == "SVN" ]; then			
 			echo $(svn_revision)
 		fi
 	fi
@@ -124,15 +124,15 @@ scp_exclude() {
 			local cartridge=${cartridges[0]}
 		fi
 		local cartProvider=$(read_conf "scp" "provider.$cartridge")
-		if [ "${cartProvider^^}" == "SVN" ]; then
+		if [ "$(upper $cartProvider)" == "SVN" ]; then
 			echo $(svn_exclude)
-		elif [ "${cartProvider^^}" == "GIT" ]; then
+		elif [ "$(upper $cartProvider)" == "GIT" ]; then
 			echo $(git_exclude)
 		fi	
 	else
-		if [ "${provider^^}" == "SVN" ]; then			
+		if [ "$(upper $provider)" == "SVN" ]; then			
 			echo $(svn_exclude)
-		elif [ "${provider^^}" == "GIT" ]; then
+		elif [ "$(upper $provider)" == "GIT" ]; then
 			echo $(git_exclude)
 		fi	
 	fi
@@ -142,9 +142,9 @@ scp_cartridge_path() {
 	local provider=$(read_conf "scp" "provider" "")
 	if [ "$provider" == "multi" ]; then
 		local cartProvider=$(read_conf "scp" "provider.$1")
-		if [ "${cartProvider^^}" == "SVN" ]; then
+		if [ "$(upper $cartProvider)" == "SVN" ]; then
 			echo $1
-		elif [ "${cartProvider^^}" == "GIT" ]; then
+		elif [ "$(upper $cartProvider)" == "GIT" ]; then
 			gitRepo=$(read_conf "git" "provider.$1.repo")
 			gitFile=$(echo "$gitRepo" | rev | cut -d"/" -f1 | rev)
 			repoDir=$(echo "$gitFile" | cut -d"." -f1)
@@ -156,9 +156,9 @@ scp_cartridge_path() {
 			fi	
 		fi
 	else
-		if [ "${provider^^}" == "SVN" ]; then			
+		if [ "$(upper $provider)" == "SVN" ]; then			
 			echo $1
-		elif [ "${provider^^}" == "GIT" ]; then
+		elif [ "$(upper $provider)" == "GIT" ]; then
 			gitRepo=$(read_conf "git" "repo")
 			gitFile=$(echo "$gitRepo" | rev | cut -d"/" -f1 | rev)
 			repoDir=$(echo "$gitFile" | cut -d"." -f1)

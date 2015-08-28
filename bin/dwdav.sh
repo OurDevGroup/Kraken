@@ -33,7 +33,7 @@ dw_configure() {
 	fi
 		
 	if [ $requiresClientCertificate == true ] && [ $genCert == false ]; then				
-		clientCertificate==$(prompt $demandwareServer "clientCertificate" $string "" "Please enter the client certificate file" true "" true)
+		clientCertificate=$(prompt $demandwareServer "clientCertificate" $string "" "Please enter the client certificate file" true "" true)
 		echo
 		
 		clientCertificatePassword=$(secure_prompt $demandwareServer "clientCertificatePassword" $string "" "Please enter the client certificate password" true "$clientCertificate" true)
@@ -52,14 +52,18 @@ dw_upload_build() {
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
 	
 	if [ $requiresClientCertificate == true ]; then
-        echo
+		local certExt="pem"
+		if [ os == "osx" ]; then
+			local certExt="p12"
+		fi	
+        echo        
         echo "Uploading with certificate authentication..."
-        curl -k -g -u "${demandwareUsername}:${demandwarePassword}" -X MKCOL ${dwtarget} --cert "${deploydir}/certs/$clientCertificate.pem:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
-        curl -k -g -u "${demandwareUsername}:${demandwarePassword}" ${dwtarget}/ -T ${homedir}/build.zip --cert "${deploydir}/certs/$clientCertificate.pem:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
+        curl -k -g -u "${demandwareUsername}:${demandwarePassword}" -X MKCOL ${dwtarget} --cert "${deploydir}/certs/$clientCertificate.$certExt:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
+        curl -k -g -u "${demandwareUsername}:${demandwarePassword}" ${dwtarget}/ -T ${homedir}/build.zip --cert "${deploydir}/certs/$clientCertificate.$certExt:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
         echo "Unzipping..."
-        curl -k -g -u "${demandwareUsername}:${demandwarePassword}" "${dwtarget}/build.zip" -d method=UNZIP --cert "${deploydir}/certs/$clientCertificate.pem:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
+        curl -k -g -u "${demandwareUsername}:${demandwarePassword}" "${dwtarget}/build.zip" -d method=UNZIP --cert "${deploydir}/certs/$clientCertificate.$certExt:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
         echo "Cleaning..." 
-		curl -k --request DELETE -u "${demandwareUsername}:${demandwarePassword}" "${dwtarget}/build.zip" -d method=UNZIP --cert "${deploydir}/certs/$clientCertificate.pem:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
+		curl -k --request DELETE -u "${demandwareUsername}:${demandwarePassword}" "${dwtarget}/build.zip" -d method=UNZIP --cert "${deploydir}/certs/$clientCertificate.$certExt:$clientCertificatePassword" --key ${deploydir}/certs/$clientCertificate.key
 	else
         echo
         echo "Uploading..."
