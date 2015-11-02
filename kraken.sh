@@ -34,7 +34,7 @@ homedir=${deploydir}/working
 
 if [ "$(uname -s)" == "Cygwin" ]; then
 	os="cygwin"
-elif ["$(uname -s)" == "Darwin" ]; then
+elif [ "$(uname -s)" == "Darwin" ]; then
 	os="osx"
 else
 	os="nix"
