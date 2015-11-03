@@ -53,7 +53,7 @@ dw_upload_build() {
 	
 	if [ $requiresClientCertificate == true ]; then
 		local certExt="pem"
-		if [ os == "osx" ]; then
+		if [ "$os" == "osx" ]; then
 			local certExt="p12"
 		fi	
         echo        
