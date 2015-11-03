@@ -12,7 +12,7 @@ To use this build script:
 3) run './kraken.sh deploy'
 4) follow the prompts
 
-The current implementation currently only supports SVN and requires that all of your cartridges be in the same root folder in the repository. (ie /trunk/sitegenesis, /trunk/sitegenesis_richUI, etc).
+The current implementation currently supports SVN and initial support for GiT.
 
 When prompted for the SVN repo, input the full URL to the specific branch you are trying to deploy (ie http://myserver/svn.wom/source/trunk).
 
