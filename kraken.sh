@@ -86,7 +86,14 @@ case "$1" in
 			scp_tag
 			echo
 			echo "Cartridge archive created."
-            ;;         
+            ;;      
+        gzip)
+            inc_build_number
+            minify
+            zip_cartridges
+            echo
+            echo "Cartridges gzip'd."
+            ;;
         update)
 			scp_configure
             scp_verify_login
@@ -97,7 +104,7 @@ case "$1" in
 			dw_configure
 			echo
 			echo "Client certificate created."
-            ;;
+            ;;        
 		upload)
 			dw_configure
 			dw_upload_build
