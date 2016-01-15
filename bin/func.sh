@@ -29,6 +29,10 @@ zip_cartridges() {
 	echo
 
 	zipfile="build.zip"
+        gitPath=$(read_conf "git" "path")
+        gitRepo=$(read_conf "git" "repo")
+        gitFile=$(echo "$gitRepo" | rev | cut -d"/" -f1 | rev)
+        repoDir=$(echo "$gitFile" | cut -d"." -f1)
 	cd "$homedir"
 	rm -f build.zip
 
@@ -36,7 +40,9 @@ zip_cartridges() {
 		echo "${cartridge}"
 		local cartPath=$(scp_cartridge_path "$cartridge")
 		if [ -d "$(echo $cartPath | tr -d '\r')" ]; then
-			zip -r $zipfile $(echo $cartPath | tr -d '\r') -x "*$(scp_exclude "$cartridge")*" -x "*.DS_Store"
+			cd $repoDir/$gitPath
+			zip -r ../../$zipfile $cartridge -x "*$(scp_exclude "$cartridge")*" -x "*.DS_Store"
+			cd ../..
 		fi
 		echo
 	done
@@ -70,7 +76,7 @@ make_clientcert() {
 
 	clientCertificatePassword=$(prompt $demandwareServer "clientCertificatePassword" $string "" "Please enter the client certificate name" true "$clientCertificate" true)
 	echo
-
+	
 	openssl req -new -newkey rsa:2048 -nodes -out ${deploydir}/certs/$clientCertificate.req -keyout ${deploydir}/certs/$clientCertificate.key -subj "$certSubj" -passout "pass:$clientCertificatePassword"
 	openssl x509 -CA ${deploydir}/certs/$demandwareCertificateCRT -CAkey ${deploydir}/certs/$demandwareCertificateKEY -CAserial ${deploydir}/certs/$demandwareCertificateSRL -req -in ${deploydir}/certs/$clientCertificate.req -out ${deploydir}/certs/$clientCertificate.pem -days 360 -passin "pass:$demandwareCertificatePassword"
 	openssl pkcs12 -export -in ${deploydir}/certs/$clientCertificate.pem -inkey ${deploydir}/certs/$clientCertificate.key -certfile ${deploydir}/certs/$demandwareCertificateCRT -name "$clientCertificate" -out ${deploydir}/certs/$clientCertificate.p12 -passout "pass:$clientCertificatePassword"
