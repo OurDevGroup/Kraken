@@ -1,5 +1,5 @@
 #!/bin/bash
-git_repo_md5() {	
+git_repo_md5() {
 	if [ "$1" == "" ]; then
 		local gitrepo=$(read_conf "git" "repo")
 		local baserepo=$gitrepo
@@ -7,13 +7,13 @@ git_repo_md5() {
 		local gitrepo=$(read_conf "git" "provider.$1.repo")
 		if [[ "$1" != "" && "$gitrepo" == *$cartridge ]]; then
 			local l=$[${#gitrepo} - ${#cartridge}]
-			local baserepo=${gitrepo:0:$l}			
+			local baserepo=${gitrepo:0:$l}
 		fi
 	fi
-	
+
 	repomd5=$(echo -n $(_md5 "$baserepo") | cut -d ' ' -f 1)
 	echo $repomd5
-	
+
 	return
 }
 
@@ -25,9 +25,9 @@ git_get_repo() {
 		echo
 		gitbranch=$(prompt "git" "branch" $string "master" "Please enter your Git repo branch" true)
 		echo
-	else		
+	else
 		baserepo=$(read_conf "git" "baserepo")
-		
+
 		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
 		gitrepo=$(prompt "git" "provider.$1.repo" $string "$baserepo" "Please enter your Git repo URL${a} (.git)" true)
 		echo
@@ -35,12 +35,12 @@ git_get_repo() {
 		echo
 		gitbranch=$(prompt "git" "provider.$1.branch" $string "master" "Please enter your Git repo branch${a}" true)
 		echo
-		
+
 		if [[ "$1" != "" && "$gitrepo" == *$cartridge ]]; then
 			local l=$[${#gitrepo} - ${#cartridge}]
 			local baserepo=${gitrepo:0:$l}
 			write_conf "git" "baserepo" "$baserepo"
-		fi		
+		fi
 	fi
 	echo
 }
@@ -54,15 +54,15 @@ git_revision() {
 	local provider=$(read_conf "scp" "provider" "")
 
 	if [ "$provider" == "multi" ]; then
-		local svnrepo=$(read_conf "git" "provider.$1.repo")	
+		local svnrepo=$(read_conf "git" "provider.$1.repo")
 		local cartdir="${homedir}/$1"
-		cd "$cartdir"		
+		cd "$cartdir"
 	else
 		local svnrepo=$(read_conf "git" "repo")
 	fi
 
 	local gitrev=`git log --pretty=format:'%h' -n 1`
-	
+
 	cd ${homedir}
 	echo "$gitrev"
 }
@@ -70,18 +70,18 @@ git_revision() {
 git_checkout() {
 	local cartpath=$(scp_cartridge_path $1)
 	local cartdir="${homedir}/$cartpath"
-	
+
 	if [ -d "$cartdir" ]; then
 		cd "$cartdir"
-		local repomd5=$(git_repo_md5 $1)
-		local isCloned=$(eval "echo \$${repomd5}")
+		local repomd5="c$(git_repo_md5 $1)"
+		local isCloned=${!repomd5}
+
 		if [ "$isCloned" != "true" ]; then
 			git checkout .
-			git reset
-			git revert ...
-			git clean -f 
-			git clean -d -f	
-			
+			git reset HEAD
+			#git revert ...
+			git clean -d -f
+
 			if [ "$provider" == "multi" ]; then
 				local branch=$(read_conf "git" "provider.$1.branch")
 			else
@@ -89,28 +89,28 @@ git_checkout() {
 			fi
 
 			git pull origin $branch
-			eval "${repomd5}=true"
-		fi			
-	else 		
+			eval "$repomd5=true"
+		fi
+	else
 		local provider=$(read_conf "scp" "provider" "")
 
 		if [ "$provider" == "multi" ]; then
-			local cartrepo=$(read_conf "git" "provider.$1.repo")	
-			local branch=$(read_conf "git" "provider.$1.branch")			
+			local cartrepo=$(read_conf "git" "provider.$1.repo")
+			local branch=$(read_conf "git" "provider.$1.branch")
 		else
 			local cartrepo=$(read_conf "git" "repo")
 			local branch=$(read_conf "git" "branch")
 		fi
-		
+
 		cd ${homedir}
-		
-		local repomd5=$(git_repo_md5 $1)		
-		local isCloned=$(eval "echo \$${repomd5}")
+
+		local repomd5="c$(git_repo_md5 $1)"
+		local isCloned=${!repomd5}
 		if [ "$isCloned" != "true" ]; then
-			git clone $cartrepo				
+			git clone $cartrepo
 			git checkout $branch
-			eval "${repomd5}=true"
-		fi		
+			eval "$repomd5=true"
+		fi
 	fi
 	cd "${homedir}"
 	echo

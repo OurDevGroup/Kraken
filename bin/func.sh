@@ -9,9 +9,9 @@ downer() {
 _md5() {
   md5=$(command -v md5);
   md5sum=$(command -v md5sum);
-  if [ "$md5" > /dev/null ] && [ -n "$md5" ]; then
+  if [ "$md5" > /dev/null ]; then
     echo "$1" | md5
-  elif [ "$md5sum" > /dev/null ] && [ -n "$md5sum" ]; then
+  elif [ "$md5sum" > /dev/null ]; then
     echo "$1" | md5sum | awk '{print $1}'
   else
     echo "$1"
