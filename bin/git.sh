@@ -58,12 +58,16 @@ git_revision() {
 		local cartdir="${homedir}/$1"
 		cd "$cartdir"
 	else
+		local cartpath=$(scp_cartridge_path ${cartridges[0]})
+		local cartdir="${homedir}/$cartpath"
+		cd "$cartdir"
 		local svnrepo=$(read_conf "git" "repo")
 	fi
 
-	local gitrev=`git log --pretty=format:'%h' -n 1`
+	local gitrev=`git rev-list --count --first-parent HEAD`
 
-	cd ${homedir}
+	cd "${homedir}"
+
 	echo "$gitrev"
 }
 
