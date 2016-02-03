@@ -71,13 +71,9 @@ make_clientcert() {
 	clientCertificatePassword=$(prompt $demandwareServer "clientCertificatePassword" $string "" "Please enter the client certificate name" true "$clientCertificate" true)
 	echo
 
-	echo "a"
 	openssl req -new -newkey rsa:2048 -nodes -out ${deploydir}/certs/$clientCertificate.req -keyout ${deploydir}/certs/$clientCertificate.key -subj "$certSubj" -passout "pass:$clientCertificatePassword"
-	echo "b"
 	openssl x509 -CA ${deploydir}/certs/$demandwareCertificateCRT -CAkey ${deploydir}/certs/$demandwareCertificateKEY -CAserial ${deploydir}/certs/$demandwareCertificateSRL -req -in ${deploydir}/certs/$clientCertificate.req -out ${deploydir}/certs/$clientCertificate.pem -days 360 -passin "pass:$demandwareCertificatePassword"
-	echo "c"
 	openssl pkcs12 -export -in ${deploydir}/certs/$clientCertificate.pem -inkey ${deploydir}/certs/$clientCertificate.key -certfile ${deploydir}/certs/$demandwareCertificateCRT -name "$clientCertificate" -out ${deploydir}/certs/$clientCertificate.p12 -passout "pass:$clientCertificatePassword"
-	echo "d"
 
 	write_conf $demandwareServer "clientCertificate" $clientCertificate
 	write_conf_enc $demandwareServer "clientCertificatePassword" $clientCertificatePassword $clientCertificate
