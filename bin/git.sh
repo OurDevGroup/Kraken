@@ -83,7 +83,7 @@ git_checkout() {
 		if [ "$isCloned" != "true" ]; then
 			git checkout .
 			git reset HEAD
-			#git revert ...
+			git revert ...
 			git clean -d -f
 
 			if [ "$provider" == "multi" ]; then
