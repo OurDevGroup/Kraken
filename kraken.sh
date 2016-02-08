@@ -93,6 +93,13 @@ case "$1" in
 			scp_checkout
 			echo "Updated cartridges."
       ;;
+	gzip)
+			inc_build_number
+			minify
+			zip_cartridges
+			echo
+			echo "Cartridges gzip'd."
+			;;
     cert)
 			dw_configure
 			echo
