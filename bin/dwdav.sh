@@ -40,6 +40,7 @@ dw_configure() {
 		echo
 	fi
 
+	echo
 	activateCodeVersion=$(prompt $demandwareServer "activateCodeVersion" $bool false "Do you want to automatically activate the deployed code" true "" true)
 	echo
 

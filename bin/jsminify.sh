@@ -1,39 +1,38 @@
-js_minify() {
-	echo	
+js_minify() {	
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	local minifyJS=$(prompt $demandwareServer "minifyJS" $bool false "Would you like to minify all Javascript files" true "" true)
 	echo
-		
+
 	if [ $minifyJS == true ]; then
-		if ! gem spec uglifier > /dev/null 2>&1; then	
+		if ! gem spec uglifier > /dev/null 2>&1; then
 			echo
 			local installMinify="N"
 			read -n 1 -p "Gem uglifier is not installed, do you want to install it [Y/n]? " installMinify
-			installMinify=${installMinify:-"Y"}	
-					
-			if [[ "$installMinify" == "y" || "$installMinify" == "Y" ]]; then	
+			installMinify=${installMinify:-"Y"}
+
+			if [[ "$installMinify" == "y" || "$installMinify" == "Y" ]]; then
 				gem install uglifier
-			else 
+			else
 				exit 1
 			fi
 		fi
 
 		echo "Minifying .js files."
 		echo
-		
-		for cartridge in "${cartridges[@]}"; do				
+
+		for cartridge in "${cartridges[@]}"; do
 			echo
 			local cartPath=$(scp_cartridge_path "$cartridge")
 			cd ${homedir}/${cartPath}
 			echo ${cartridge}
-		
+
 			if [ -d ${homedir}/${cartPath}/cartridge/static ]; then
-		
+
 				file_list=()
 				while IFS= read -d $'\0' -r file; do
 					file_list=("${file_list[@]}" "$file")
 				done < <(find "${homedir}/${cartPath}/cartridge/static" -name "*.js" ! -name '*.min.js' -print0)
-				
+
 				cd ${deploydir}/bin
 				for file in "${file_list[@]}" ; do
 					echo "Minifying Javascript $file"
@@ -41,9 +40,9 @@ js_minify() {
 					#if [ iscygwin ]; then
 					#	jsFile=$(cygpath -w $file)
 					#fi
-					
+
 					$(which ruby) jsmin.rb $file >> ${file}.tmp
-					
+
 					#cp ${file} ${file}.bak
 					#java -jar yuicompressor-2.4.8.jar --type js "${jsFile}" > ${file}.tmp
 					if [[ -f ${file}.tmp && -s ${file}.tmp ]]; then
@@ -54,9 +53,9 @@ js_minify() {
 					#rm ${file}.bak
 
 				done
-				
+
 			fi
 
-		done		
-	fi	
+		done
+	fi
 }
