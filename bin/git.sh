@@ -81,15 +81,17 @@ git_checkout() {
 		local isCloned=${!repomd5}
 
 		if [ "$isCloned" != "true" ]; then
-			git fetch --all
-			git reset --hard origin/${branch}
-			git clean -d -f
-
 			if [ "$provider" == "multi" ]; then
 				local branch=$(read_conf "git" "provider.$1.branch")
 			else
 				local branch=$(read_conf "git" "branch")
 			fi
+
+			git fetch --all
+			git reset --hard origin/${branch}
+			git clean -d -f
+
+
 
 			git pull origin $branch
 			eval "$repomd5=true"
