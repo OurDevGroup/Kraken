@@ -81,9 +81,8 @@ git_checkout() {
 		local isCloned=${!repomd5}
 
 		if [ "$isCloned" != "true" ]; then
-			git checkout .
-			git reset HEAD
-			git revert ...
+			git fetch --all
+			git reset --hard origin/${branch}
 			git clean -d -f
 
 			if [ "$provider" == "multi" ]; then

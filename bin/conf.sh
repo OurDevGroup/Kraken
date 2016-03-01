@@ -5,12 +5,12 @@ bool="bool"
 write_conf() {
 	local file="${deploydir}/conf/$1.conf"
 	local setting="$2"
-	local value="$3"	
-		
+	local value="$3"
+
 	if [ ! -f $file ]; then
 		touch $file
-	fi	
-	
+	fi
+
 	local confout=""
 	while IFS='' read -r line || [[ -n $line ]]; do
 		local pp="$( cut -d '=' -f 1 <<< "$line" )";
@@ -21,7 +21,7 @@ write_conf() {
 	done < $file
 	confout="${confout}$setting=$value\n"
 	echo -e $confout > $file
-	
+
 	return
 }
 
@@ -31,37 +31,37 @@ write_conf_enc() {
 	return
 }
 
-read_conf() {	
+read_conf() {
 	local file="${deploydir}/conf/$1.conf"
-		
+
 	if [ ! -f $file ]; then
 		touch $file
-	fi	
-	
+	fi
+
 	while IFS='' read -r line || [[ -n $line ]]; do
 		local pp="$( cut -d '=' -f 1 <<< "$line" )";
 		local vv="$( cut -d '=' -f 2- <<< "$line" )";
 		if [ "$pp" == "$2" ]; then
 			echo $vv
 			return
-		fi		
+		fi
 	done < $file
-	
+
 	echo $3
-	
+
 	return
 }
 
 read_conf_enc() {
-	local encval=$(read_conf $1 $2)		
+	local encval=$(read_conf $1 $2)
 	if [ "$encval" != "" ]; then
 		local val=$(echo "$encval" | openssl enc -aes-128-cbc -a -d -salt -pass "pass:$3")
 		if [ $val ]; then
 			echo $val
 			return
-		fi					
+		fi
 	fi
-	
+
 	echo $4
 	return
 }
@@ -79,14 +79,14 @@ function trim {
 # $7 passphrase
 # $8 store
 
-prompt() {	
-	if [ "$3" == "string" ]; then		
+prompt() {
+	if [ "$3" == "string" ]; then
 		if [ "$7" == "" ]; then
 			local existingVal=$(read_conf $1 $2 $4)
 		else
 			local existingVal=$(read_conf_enc $1 $2 $7)
 		fi
-				
+
 		if [ $ReleaseTheKraken == true ] && [ "$existingVal" != "" ]; then
 			echo "$existingVal"
 			return
@@ -99,13 +99,13 @@ prompt() {
 		else
 			local existingVal=false
 		fi
-		
+
 		if [ $ReleaseTheKraken == true ]; then
 			echo $existingVal
 			return
 		fi
 	fi
-	
+
     local valProvided=false
     while ! $valProvided; do
 		if [ "$3" == "string" ]; then
@@ -115,8 +115,8 @@ prompt() {
 					local dispValLen=${#existingVal}
 					if [ ${dispValLen} -gt 40 ]; then
 						local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
-					fi			
-				else 
+					fi
+				else
 					local dispVal="stored password"
 				fi
 				if [ "$7" == "" ]; then
@@ -125,7 +125,7 @@ prompt() {
 					read -p "$5 [$dispVal]: " -s newval
 				fi
 			else
-				if [ "$7" == "" ]; then			
+				if [ "$7" == "" ]; then
 					read -p "$5: " newval
 				else
 					read -p "$5: " -s newval
@@ -138,35 +138,35 @@ prompt() {
 			else
 				read -p "$5 [y/N]: " yn_newval
 				yn_newval=${yn_newval:-N}
-			fi	
+			fi
 		fi
-		
+
 		if [[ "$3" == "string" && "$existingVal" != "" ]]; then
 			newval=${newval:-$existingVal}
-		elif [ "$3" == "bool" ]; then			
-			if [ "$(upper "$yn_newval")" == "Y" ]; then	
+		elif [ "$3" == "bool" ]; then
+			if [ "$(upper "$yn_newval")" == "Y" ]; then
 				newval=true
 			else
 				newval=false
 			fi
 		fi
-        
+
 		if [[ "$newval" == "" && required ]]; then
             echo "$2 cannot be empty!"
         else
             valProvided=true
         fi
     done
-		
+
 	if [ "$8" == "" ] || [ $8 == true ]; then
-	
+
 		if [ "$7" == "" ]; then
 			write_conf $1 $2 "$newval"
 		else
 			write_conf_enc $1 $2 "$newval" $7
 		fi
 	fi
-	
+
 	echo $newval
 	return
 }

@@ -114,7 +114,13 @@ case "$1" in
 			echo "Cartridges uploaded to $dwbuild."
 			;;
 		test)
-			scp_revision
+
+
+				npm=$(npm info ledss version 2>/dev/null)
+				if [ -z "$npm" ]; then
+				   echo "matched"
+				fi
+			echo "done"
 			;;
     *)
       echo $"Usage: $0 {deploy|build|update|cert|upload}"
