@@ -70,6 +70,7 @@ scp_configure() {
 		else
 			local eachCartridge=false;
 		fi
+
 		local eachCartridge=$(prompt "scp" "eachCartridge" $bool $eachCartridge "Do you want to configure a source control provider for each cartridge" true "" false)
 
 		echo
@@ -79,6 +80,7 @@ scp_configure() {
 			for cartridge in "${cartridges[@]}"; do
 				local provider=$(prompt "scp" "provider.$cartridge" $string "svn" "What source control provider do you use for $cartridge (svn/git)" true)
 				echo
+
 				if [ "$(upper $provider)" == "SVN" ]; then
 					svn_verify_login "$cartridge"
 				elif [ "$(upper $provider)" == "GIT" ]; then
@@ -109,7 +111,7 @@ scp_revision() {
 		if [ "$(upper $cartProvider)" == "SVN" ]; then
 			echo $(svn_revision $cartridge)
 		elif [ "$(upper $provider)" == "GIT" ]; then
-			echo $(git_revision $cartridge)			
+			echo $(git_revision $cartridge)
 		fi
 	else
 		if [ "$(upper $provider)" == "SVN" ]; then

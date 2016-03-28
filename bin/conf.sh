@@ -42,7 +42,7 @@ read_conf() {
 		local pp="$( cut -d '=' -f 1 <<< "$line" )";
 		local vv="$( cut -d '=' -f 2- <<< "$line" )";
 		if [ "$pp" == "$2" ]; then
-			echo $vv
+			echo $vv | tr -d '\n' | tr -d '\r'
 			return
 		fi
 	done < $file
@@ -93,7 +93,6 @@ prompt() {
 		fi
 	else
 		local t_existingVal=$(read_conf $1 $2 $4)
-
 		if [ "$t_existingVal" == "true" ]; then
 			local existingVal=true
 		else
@@ -101,7 +100,7 @@ prompt() {
 		fi
 
 		if [ $ReleaseTheKraken == true ]; then
-			echo $existingVal
+			echo $existingVal | tr '\n' ' '
 			return
 		fi
 	fi
@@ -113,6 +112,7 @@ prompt() {
 				local dispVal=$existingVal
 				if [ "$7" == "" ]; then
 					local dispValLen=${#existingVal}
+					echo $existingVal
 					if [ ${dispValLen} -gt 40 ]; then
 						local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
 					fi

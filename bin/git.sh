@@ -18,15 +18,21 @@ git_repo_md5() {
 }
 
 git_get_repo() {
+	git config --global http.postBuffer 524288000
+
 	if [ "$1" == "" ]; then
 		gitrepo=$(prompt "git" "repo" $string "" "Please enter your Git repo URL (.git)" true)
 		echo
-		gitpath=$(prompt "git" "path" $string "" "Please enter your Git repo catridge path" true)
+		gitpath=$(prompt "git" "path" $string "." "Please enter your Git repo catridge path" true)
 		echo
 		gitbranch=$(prompt "git" "branch" $string "master" "Please enter your Git repo branch" true)
 		echo
 	else
 		baserepo=$(read_conf "git" "baserepo")
+		if ["$gitpath" == ""]; then
+			gitpath="."
+		fi
+
 
 		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
 		gitrepo=$(prompt "git" "provider.$1.repo" $string "$baserepo" "Please enter your Git repo URL${a} (.git)" true)
@@ -72,6 +78,7 @@ git_revision() {
 }
 
 git_checkout() {
+	echo "git checkout"
 	local cartpath=$(scp_cartridge_path $1)
 	local cartdir="${homedir}/$cartpath"
 
