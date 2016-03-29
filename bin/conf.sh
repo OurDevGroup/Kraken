@@ -112,7 +112,6 @@ prompt() {
 				local dispVal=$existingVal
 				if [ "$7" == "" ]; then
 					local dispValLen=${#existingVal}
-					echo $existingVal
 					if [ ${dispValLen} -gt 40 ]; then
 						local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
 					fi
