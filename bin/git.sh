@@ -29,10 +29,6 @@ git_get_repo() {
 		echo
 	else
 		baserepo=$(read_conf "git" "baserepo")
-		if ["$gitpath" == ""]; then
-			gitpath="."
-		fi
-
 
 		local a=$([ "$1" == "" ] && echo "" || echo " for $1")
 		gitrepo=$(prompt "git" "provider.$1.repo" $string "$baserepo" "Please enter your Git repo URL${a} (.git)" true)
