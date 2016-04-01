@@ -1,14 +1,16 @@
 #!/bin/bash
 git_repo_md5() {
+
 	if [ "$1" == "" ]; then
 		local gitrepo=$(read_conf "git" "repo")
 		local baserepo=$gitrepo
 	else
 		local gitrepo=$(read_conf "git" "provider.$1.repo")
-		if [[ "$1" != "" && "$gitrepo" == *$cartridge ]]; then
-			local l=$[${#gitrepo} - ${#cartridge}]
-			local baserepo=${gitrepo:0:$l}
-		fi
+		local baserepo=$gitrepo
+		#if [[ "$1" != "" && "$gitrepo" == *$cartridge ]]; then
+		#	local l=$[${#gitrepo} - ${#cartridge}]
+		#	local baserepo=${gitrepo:0:$l}
+		#fi
 	fi
 
 	repomd5=$(echo -n $(_md5 "$baserepo") | cut -d ' ' -f 1)
@@ -23,7 +25,7 @@ git_get_repo() {
 	if [ "$1" == "" ]; then
 		gitrepo=$(prompt "git" "repo" $string "" "Please enter your Git repo URL (.git)" true)
 		echo
-		gitpath=$(prompt "git" "path" $string "." "Please enter your Git repo catridge path" true)
+		gitpath=$(prompt "git" "path" $string "." "Please enter your Git repo catridge path" false)
 		echo
 		gitbranch=$(prompt "git" "branch" $string "master" "Please enter your Git repo branch" true)
 		echo
@@ -57,18 +59,18 @@ git_revision() {
 
 	if [ "$provider" == "multi" ]; then
 		local svnrepo=$(read_conf "git" "provider.$1.repo")
-		local cartdir="${homedir}/$1"
+		local cartdir="$homedir/$1"
 		cd "$cartdir"
 	else
 		local cartpath=$(scp_cartridge_path ${cartridges[0]})
-		local cartdir="${homedir}/$cartpath"
+		#local cartdir="$homedir/$cartpath"
+		local cartdir="$homedir/$1"
 		cd "$cartdir"
-		local svnrepo=$(read_conf "git" "repo")
 	fi
 
 	local gitrev=`git rev-list --count --first-parent HEAD`
 
-	cd "${homedir}"
+	cd $homedir
 
 	echo "$gitrev"
 }
@@ -77,10 +79,10 @@ git_checkout() {
 	echo "git checkout"
 	local cartpath=$(scp_cartridge_path $1)
 	local cartdir="${homedir}/$cartpath"
+	local repomd5="c$(git_repo_md5 $1)"
 
 	if [ -d "$cartdir" ]; then
 		cd "$cartdir"
-		local repomd5="c$(git_repo_md5 $1)"
 		local isCloned=${!repomd5}
 
 		if [ "$isCloned" != "true" ]; then
@@ -93,8 +95,6 @@ git_checkout() {
 			git fetch --all
 			git reset --hard origin/${branch}
 			git clean -d -f
-
-
 
 			git pull origin $branch
 			eval "$repomd5=true"

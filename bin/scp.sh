@@ -156,9 +156,9 @@ scp_cartridge_path() {
 			repoDir=$(echo "$gitFile" | cut -d"." -f1)
 			cartPath=$(read_conf "git" "provider.$1.path")
 			if [ "$cartPath" == "" ]; then
-				echo "$repoDir/$1"
+				echo "$repoDir"
 			else
-				echo "$repoDir/$cartPath/$1"
+				echo "$repoDir/$cartPath"
 			fi
 		fi
 	else

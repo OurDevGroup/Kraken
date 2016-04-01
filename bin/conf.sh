@@ -111,7 +111,7 @@ prompt() {
 			if [ "$existingVal" != "" ]; then
 				local dispVal=$existingVal
 				if [ "$7" == "" ]; then
-					local dispValLen=${#existingVal}
+					local dispValLen=${#existingVal}					
 					if [ ${dispValLen} -gt 40 ]; then
 						local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
 					fi
