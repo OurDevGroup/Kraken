@@ -100,37 +100,37 @@ prompt() {
 		fi
 
 		if [ $ReleaseTheKraken == true ]; then
-			echo $existingVal | tr '\n' ' '
+			echo $existingVal | tr -d '\n'
 			return
 		fi
 	fi
 
     local valProvided=false
     while ! $valProvided; do
-		if [ "$3" == "string" ]; then
-			if [ "$existingVal" != "" ]; then
-				local dispVal=$existingVal
-				if [ "$7" == "" ]; then
-					local dispValLen=${#existingVal}					
-					if [ ${dispValLen} -gt 40 ]; then
-						local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
+			if [ "$3" == "string" ]; then
+				if [ "$existingVal" != "" ]; then
+					local dispVal=$existingVal
+					if [ "$7" == "" ]; then
+						local dispValLen=${#existingVal}
+						if [ ${dispValLen} -gt 40 ]; then
+							local dispVal="$(trim ${existingVal:0:15}).....$(trim ${existingVal:(-25)})"
+						fi
+					else
+						local dispVal="stored password"
+					fi
+					if [ "$7" == "" ]; then
+						read -p "$5 [$dispVal]: " newval
+					else
+						read -p "$5 [$dispVal]: " -s newval
 					fi
 				else
-					local dispVal="stored password"
+					if [ "$7" == "" ]; then
+						read -p "$5: " newval
+					else
+						read -p "$5: " -s newval
+					fi
 				fi
-				if [ "$7" == "" ]; then
-					read -p "$5 [$dispVal]: " newval
-				else
-					read -p "$5 [$dispVal]: " -s newval
-				fi
-			else
-				if [ "$7" == "" ]; then
-					read -p "$5: " newval
-				else
-					read -p "$5: " -s newval
-				fi
-			fi
-		else
+		else #if [ "$3" == "string" ]; then
 			if [ $existingVal == true ]; then
 				read -n 1 -p "$5 [Y/n]: " yn_newval
 				yn_newval=${yn_newval:-Y}
@@ -148,14 +148,14 @@ prompt() {
 			else
 				newval=false
 			fi
-		fi
+	  fi
 
-		if [[ "$newval" == "" && required ]]; then
-            echo "$2 cannot be empty!"
-        else
-            valProvided=true
-        fi
-    done
+		if [[ "$newval" == "\r" && required ]]; then
+        echo "$2 cannot be empty!"
+    else
+        valProvided=true
+    fi
+	done
 
 	if [ "$8" == "" ] || [ $8 == true ]; then
 
