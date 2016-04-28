@@ -96,6 +96,7 @@ git_checkout() {
 			git reset --hard origin/${branch}
 			git clean -d -f
 
+			git checkout $branch
 			git pull origin $branch
 			eval "$repomd5=true"
 		fi
