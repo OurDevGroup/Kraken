@@ -135,6 +135,11 @@ case "$1" in
 			echo
 			echo "Appended ${2} cartridge."
 			;;
+	branch)
+			write_conf "git" "branch" $2
+			echo
+			echo "Set branch to $2."			
+			;;
 	updatecurl)
 		echo
 		if [ "$os" == "nix" ]; then				
