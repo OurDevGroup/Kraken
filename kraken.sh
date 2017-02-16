@@ -135,6 +135,25 @@ case "$1" in
 			echo
 			echo "Appended ${2} cartridge."
 			;;
+	updatecurl)
+		echo
+		if [ "$os" == "nix" ]; then				
+			echo "Updating cURL to 7.52.1..."
+			sudo apt-get build-dep curl
+			mkdir ~/curl
+			cd ~/curl
+			wget http://curl.haxx.se/download/curl-7.52.1.tar.bz2
+			tar -xvjf curl-7.52.1.tar.bz2
+			cd curl-7.52.1
+			./configure
+			make
+			sudo make install
+			sudo ldconfig
+			echo "Done."
+		else
+			echo "cURL update procedure is only available for Linux environments."
+		fi
+		;;
 	test)
 				npm=$(npm info ledss version 2>/dev/null)
 				if [ -z "$npm" ]; then
