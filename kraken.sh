@@ -69,30 +69,30 @@ case "$1" in
 			scp_verify_login
 			scp_checkout
 			dw_configure
-      inc_build_number
+      		inc_build_number
 			minify
 			zip_cartridges
 			dw_upload_build
 			scp_tag
 			echo "Cartridges uploaded to $dwbuild."
-      ;;
+      		;;
   	build)
 			scp_configure
 			scp_verify_login
 			scp_checkout
-      inc_build_number
+      		inc_build_number
 			minify
 			zip_cartridges
 			scp_tag
 			echo
 			echo "Cartridge archive created."
-      ;;
+      		;;
     update)
 			scp_configure
-      scp_verify_login
+      		scp_verify_login
 			scp_checkout
 			echo "Updated cartridges."
-      ;;
+      		;;
 	gzip)
 			inc_build_number
 			minify
@@ -105,7 +105,7 @@ case "$1" in
 			echo
 			echo "Client certificate created."
       ;;
-		upload)
+	upload)
 			dw_configure
 			inc_build_number
 			zip_cartridges
@@ -113,9 +113,29 @@ case "$1" in
 			echo
 			echo "Cartridges uploaded to $dwbuild."
 			;;
-		test)
-
-
+	clean)
+			if [ -d ${deploydir}/working ]; then
+				rm -rf ${deploydir}/working
+			fi
+			echo
+			echo "Cleaned working directory."
+			;;
+	list)
+			echo
+			echo "Cartridges to be deployed:"
+			cat ${deploydir}/conf/cartridges.conf
+			echo
+			;;
+	add)
+			if [ ${#2} -eq 0 ]; then
+				echo "Usage: add [cartridge name]."
+			else
+				echo $2 >> ${deploydir}/conf/cartridges.conf
+			fi
+			echo
+			echo "Appended ${2} cartridge."
+			;;
+	test)
 				npm=$(npm info ledss version 2>/dev/null)
 				if [ -z "$npm" ]; then
 				   echo "matched"
@@ -123,7 +143,7 @@ case "$1" in
 			echo "done"
 			;;
     *)
-      echo $"Usage: $0 {deploy|build|update|cert|upload}"
+      echo $"Usage: $0 {deploy|build|update|cert|upload|clean|list|add}"
       exit 1
 
 esac
