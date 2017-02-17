@@ -1,6 +1,31 @@
 string="string"
 bool="bool"
 
+write_status() {
+	local file="${deploydir}/working/status"
+	
+	if [ ! -f $file ]; then
+		touch $file
+	fi
+
+	echo -e $1 > $file
+
+	return
+}
+
+read_status() {
+	local file="${deploydir}/working/status"
+	
+	if [ ! -f $file ]; then
+		touch $file
+	fi
+
+	local status="$( cat $file )";
+
+	echo $status
+
+	return
+}
 
 write_conf() {
 	local file="${deploydir}/conf/$1.conf"

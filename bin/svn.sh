@@ -18,6 +18,8 @@ svn_repo_md5() {
 }
 
 svn_get_repo() {
+	write_status "Checking Out SVN Files"
+	
 	if [ "$1" == "" ]; then
 		svnrepo=$(prompt "svn" "repo" $string "" "Please enter your SVN repo URL" true)
 	else

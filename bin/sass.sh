@@ -1,5 +1,7 @@
 
 scss_compile() {
+	write_status "Compiling Sass Files"
+
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	local compileSASS=$(prompt $demandwareServer "minifySASS" $bool false "Would you like to compile all Sass .scss files" true "" true)
 	echo

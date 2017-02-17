@@ -1,4 +1,6 @@
 less_compile() {
+  write_status "Compiling Less Files"
+
   local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	local compileLess=$(prompt $demandwareServer "compileLess" $bool false "Would you like to compile all Less .less files" true "" true)
 	echo

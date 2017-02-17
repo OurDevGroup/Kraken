@@ -57,6 +57,8 @@ zip_cartridges() {
 }
 
 make_clientcert() {
+	write_status "Building Client Certificate"
+
 	if [ ! -d "${deploydir}/certs" ]; then
 		mkdir "${deploydir}/certs"
 		echo "You need to request a server certificate and password from Demandware and put it in the certs directory!"

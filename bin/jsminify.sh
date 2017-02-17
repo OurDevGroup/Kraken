@@ -1,4 +1,6 @@
 js_minify() {	
+	write_status "Minifying Javascript"
+
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)
 	local minifyJS=$(prompt $demandwareServer "minifyJS" $bool false "Would you like to minify all Javascript files" true "" true)
 	local skipCartridges=false

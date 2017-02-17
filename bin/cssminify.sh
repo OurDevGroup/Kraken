@@ -1,4 +1,6 @@
 css_minify() {
+	write_status "Minifying CSS and Javascript"
+
 	local demandwareServer=$(read_conf "deploy" "demandwareServer" $demandwareServer)		
 	local minifyCSS=$(prompt $demandwareServer "minifyCSS" $bool false "Would you like to minify all .css files" true "" true)
 	echo

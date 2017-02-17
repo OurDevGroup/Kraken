@@ -20,6 +20,8 @@ git_repo_md5() {
 }
 
 git_get_repo() {
+	write_status "Configuring Git"
+
 	git config --global http.postBuffer 524288000
 
 	if [ "$1" == "" ]; then
@@ -76,6 +78,8 @@ git_revision() {
 }
 
 git_checkout() {
+	write_status "Cloning Git Repository"
+
 	echo "git checkout"
 	local cartpath=$(scp_cartridge_path $1)
 	local cartdir="${homedir}/$cartpath"

@@ -2,6 +2,7 @@ requiresClientCertificate=false
 certSubj=$(read_conf "deploy" "certSubj" "/C=US/ST=Some State/L=Some City/O=Some Company/OU=IT/CN=example.com")
 
 dw_configure() {
+	write_status "Configuring Demandware"
 
 	demandwareServer=$(prompt "deploy" "demandwareServer" $string "" "Please enter the target Demandware server" true "" true)
 	echo
@@ -48,6 +49,8 @@ dw_configure() {
 }
 
 dw_upload_build() {
+	write_status "Uploading Code"
+
 	local day=`/bin/date +%Y%m%d`
 	local rev=$(scp_revision)
 	local bn=$(read_conf "deploy" "build" 0)

@@ -56,12 +56,22 @@ if [[ ! -e ${deploydir}/conf/cartridges.conf || ! -s ${deploydir}/conf/cartridge
     exit 1
 fi
 
-IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
+if [ ! "$1" == "status" ]; then
+	IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
 
-printf "\033c"
-kraken
-printf  "\r\nDemand${txtgrn}ware${txtrst} Build Script\r\n"
-echo
+	printf "\033c"
+	kraken
+	printf  "\r\nDemand${txtgrn}ware${txtrst} Build Script\r\n"
+	echo
+
+	status=$(read_status)
+
+	if [ ! "$status" == "" ]; then
+		echo "Kraken is busy with another task, try again later."
+		exit 1
+	fi
+
+fi
 
 case "$1" in
     deploy)
@@ -159,16 +169,17 @@ case "$1" in
 			echo "cURL update procedure is only available for Linux environments."
 		fi
 		;;
+	status)
+		read_status
+		;;
 	test)
-				npm=$(npm info ledss version 2>/dev/null)
-				if [ -z "$npm" ]; then
-				   echo "matched"
-				fi
-			echo "done"
+		write_status "ryan"
 			;;
     *)
       echo $"Usage: $0 {deploy|build|update|cert|upload|clean|list|add}"
       exit 1
+
+write_status ""
 
 esac
 
