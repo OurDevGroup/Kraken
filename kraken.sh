@@ -83,6 +83,7 @@ case "$1" in
 			zip_cartridges
 			dw_upload_build
 			scp_tag
+			write_status ""
 			echo "Cartridges uploaded to $dwbuild."
       		;;
   	build)
@@ -93,6 +94,7 @@ case "$1" in
 			minify
 			zip_cartridges
 			scp_tag
+			write_status ""
 			echo
 			echo "Cartridge archive created."
       		;;
@@ -100,17 +102,20 @@ case "$1" in
 			scp_configure
       		scp_verify_login
 			scp_checkout
+			write_status ""
 			echo "Updated cartridges."
       		;;
 	gzip)
 			inc_build_number
 			minify
 			zip_cartridges
+			write_status ""
 			echo
 			echo "Cartridges gzip'd."
 			;;
     cert)
 			dw_configure
+			write_status ""
 			echo
 			echo "Client certificate created."
       		;;
@@ -119,6 +124,7 @@ case "$1" in
 			inc_build_number
 			zip_cartridges
 			dw_upload_build
+			write_status ""
 			echo
 			echo "Cartridges uploaded to $dwbuild."
 			;;
@@ -184,8 +190,6 @@ case "$1" in
     *)
       echo $"Usage: $0 {deploy|build|update|cert|upload|clean|list|add}"
       exit 1
-
-write_status ""
 
 esac
 
