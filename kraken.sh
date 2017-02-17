@@ -56,7 +56,7 @@ if [[ ! -e ${deploydir}/conf/cartridges.conf || ! -s ${deploydir}/conf/cartridge
     exit 1
 fi
 
-if [ ! "$1" == "status" ]; then
+if [[ !"$1" == "status" && !"$1" == "version" ]]; then
 	IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
 
 	printf "\033c"
@@ -114,7 +114,7 @@ case "$1" in
 			dw_configure
 			echo
 			echo "Client certificate created."
-      ;;
+      		;;
 	upload)
 			dw_configure
 			inc_build_number
@@ -178,8 +178,9 @@ case "$1" in
 		 echo $lbn		 
 		 exit 0
 		;;
-	test)
-		write_status "ryan"
+	test)	
+		v=$(read_status)
+		echo $v
 		;;
     *)
       echo $"Usage: $0 {deploy|build|update|cert|upload|clean|list|add}"
