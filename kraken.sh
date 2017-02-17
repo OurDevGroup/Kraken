@@ -56,9 +56,9 @@ if [[ ! -e ${deploydir}/conf/cartridges.conf || ! -s ${deploydir}/conf/cartridge
     exit 1
 fi
 
-if [[ !"$1" == "status" && !"$1" == "version" ]]; then
-	IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
+IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
 
+if [[ !"$1" == "status" && !"$1" == "version" ]]; then	
 	printf "\033c"
 	kraken
 	printf  "\r\nDemand${txtgrn}ware${txtrst} Build Script\r\n"
@@ -70,7 +70,6 @@ if [[ !"$1" == "status" && !"$1" == "version" ]]; then
 		echo "Kraken is busy with another task, try again later."
 		exit 1
 	fi
-
 fi
 
 case "$1" in
