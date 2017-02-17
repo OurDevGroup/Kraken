@@ -58,7 +58,7 @@ fi
 
 IFS=$'\r\n' read -d '' -r -a cartridges < ${deploydir}/conf/cartridges.conf
 
-if [[ !"$1" == "status" && !"$1" == "version" ]]; then	
+if [[ "$1" != "status" && "$1" != "version" ]]; then	
 	printf "\033c"
 	kraken
 	printf  "\r\nDemand${txtgrn}ware${txtrst} Build Script\r\n"
@@ -66,7 +66,7 @@ if [[ !"$1" == "status" && !"$1" == "version" ]]; then
 
 	status=$(read_status)
 
-	if [ ! "$status" == "" ]; then
+	if [[ "$status" != "" && "$1" != "clean" ]]; then
 		echo "Kraken is busy with another task, try again later."
 		exit 1
 	fi

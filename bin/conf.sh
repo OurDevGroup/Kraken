@@ -14,16 +14,16 @@ write_status() {
 }
 
 read_status() {
-	local recent=$(find ${deploydir}/working/status -mmin -5 -type f -print)
-	
-	if [ "$recent" == "" ]; then
-		write_status ""
-	fi
-
 	local file="${deploydir}/working/status"
 	
 	if [ ! -f $file ]; then
 		touch $file
+	fi
+
+	local recent=$(find ${deploydir}/working/status -mmin -5 -type f -print)
+	
+	if [ "$recent" == "" ]; then
+		write_status ""
 	fi
 
 	local status="$( cat $file )";
