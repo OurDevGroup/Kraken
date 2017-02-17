@@ -56,6 +56,8 @@ dw_upload_build() {
 	local bn=$(read_conf "deploy" "build" 0)
 	dwbuild=${day}_${rev}_${bn}
 
+	write_conf "deploy" "lastBuild" "$dwbuild"
+
 	dwtarget="https://$demandwareServer/on/demandware.servlet/webdav/Sites/Cartridges/${dwbuild}"
 
 	if [ $requiresClientCertificate == true ]; then

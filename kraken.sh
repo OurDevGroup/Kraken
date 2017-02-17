@@ -171,10 +171,16 @@ case "$1" in
 		;;
 	status)
 		read_status
+		exit 0
+		;;
+	version)
+	 	lbn=$(read_conf "deploy" "lastBuild" "none")
+		 echo $lbn		 
+		 exit 0
 		;;
 	test)
 		write_status "ryan"
-			;;
+		;;
     *)
       echo $"Usage: $0 {deploy|build|update|cert|upload|clean|list|add}"
       exit 1
@@ -183,4 +189,4 @@ write_status ""
 
 esac
 
-exit 1
+exit 0
